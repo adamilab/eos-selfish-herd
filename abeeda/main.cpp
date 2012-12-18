@@ -677,7 +677,7 @@ int main(int argc, char *argv[])
         {
             string bestString = findBestRun(cloneSwarm, predatorLOD[i]);
             
-            if ( (i + 1) == swarmSize )
+            if ( (i + 1) == swarmLOD.size() )
             {
                 bestString.append("X");
             }
