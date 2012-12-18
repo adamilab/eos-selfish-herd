@@ -121,8 +121,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         {
             goodPos = true;
             
-            preyX[i] = (double)(randDouble * gridX * 2.0) - gridX;
-            preyY[i] = (double)(randDouble * gridY * 2.0) - gridY;
+            preyX[i] = (double)(randDouble * gridX) - gridX / 2.0;//(double)(randDouble * gridX * 2.0) - gridX;
+            preyY[i] = (double)(randDouble * gridY) - gridY / 2.0;//(double)(randDouble * gridY * 2.0) - gridY;
             
             // make sure prey don't start too close together
             for (int j = 0; j < i; ++j)
@@ -159,13 +159,13 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             reportString.append(text);
             
             // compute center of swarm
-            double cX = 0.0, cY = 0.0;
+            /*double cX = 0.0, cY = 0.0;
             calcSwarmCenter(preyX,preyY, preyDead, cX, cY);
             
             // report X, Y of center of swarm
             char text2[1000];
             sprintf(text2,"%f,%f,%f,%d,%d,%d=", cX, cY, 0.0, 124, 252, 0);
-            reportString.append(text2);
+            reportString.append(text2);*/
             
             // report X, Y, angle of all prey
             for(int i = 0; i <swarmSize; ++i)
@@ -486,10 +486,10 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                         swarmAgents[i]->states[preySensors + (int)(angle / (preyVisionAngle / ((double)preySensors / 2.0)) + ((double)preySensors / 2.0))] = 1;
                     }
                 }
+                
+                // activate the swarm agent's brain
+                swarmAgents[i]->updateStates();
             }
-            
-            // activate the swarm agent's brain
-            swarmAgents[i]->updateStates();
         }
         
         // activate each swarm agent's brain, determine its action for this update, and update its position and angle
@@ -580,7 +580,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     if (i != j && !preyDead[j])
                     {
                         // collision with other prey?
-                        if (preyDists[i][j] < 5.0)
+                        if (preyDists[i][j] < collisionDist)
                         {
                             // reset prey back to its position before the collision
                             preyX[i] = lastPreyX[i];
