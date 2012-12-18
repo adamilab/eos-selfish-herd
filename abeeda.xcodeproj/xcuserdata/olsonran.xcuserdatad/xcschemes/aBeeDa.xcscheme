@@ -55,11 +55,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-dd /Users/olsonran/Desktop/Dropbox/Private/notebooks/coevolution-of-swarming/swarm-sd30-jeschke-confusion-Es0.05-Emax0.9-Emin0.2-pvr50/ -sd 30 -es 0.05 -emax 0.9 -emin 0.2 -pvr 50"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-e lod.csv swarm.genome predator.genome -g 1200"
-            isEnabled = "NO">
+            argument = "-e lod.csv swarm.genome predator.genome -g 1200 -v 5"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-dfp startPredator.genome startPredator.dot"
