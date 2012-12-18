@@ -46,7 +46,6 @@ public:
 #endif
 	
 	tAgent *ancestor;
-    tAgent *predator;
 	unsigned int nrPointingAtMe;
 	unsigned char states[maxNodes*swarmSize],newStates[maxNodes*swarmSize];
 	double fitness,convFitness;

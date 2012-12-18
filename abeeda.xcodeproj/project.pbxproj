@@ -113,7 +113,10 @@
 /* Begin PBXProject section */
 		8464C10514683D7F00BDA7EB /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = 8464C10814683D7F00BDA7EB /* Build configuration list for PBXProject "aBeeDa" */;
+			attributes = {
+				LastUpgradeCheck = 0450;
+			};
+			buildConfigurationList = 8464C10814683D7F00BDA7EB /* Build configuration list for PBXProject "abeeda" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -208,7 +211,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8464C10814683D7F00BDA7EB /* Build configuration list for PBXProject "aBeeDa" */ = {
+		8464C10814683D7F00BDA7EB /* Build configuration list for PBXProject "abeeda" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8464C11614683D7F00BDA7EB /* Debug */,
@@ -224,6 +227,7 @@
 				8464C11A14683D7F00BDA7EB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -28,7 +28,6 @@
 tAgent::tAgent(){
 	nrPointingAtMe=1;
 	ancestor = NULL;
-    predator = NULL;
 	for(int i=0;i<maxNodes;i++)
     {
 		states[i]=0;
@@ -53,11 +52,6 @@ tAgent::~tAgent()
 	for (int i = 0; i < hmmus.size(); ++i)
     {
         delete hmmus[i];
-    }
-    
-    if (predator != NULL)
-    {
-        delete predator;
     }
     
 	if (ancestor!=NULL)

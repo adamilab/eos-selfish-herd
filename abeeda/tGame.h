@@ -52,7 +52,7 @@ class tGame{
 public:
     tExperiment theExperiment;
     void loadExperiment(char *filename);
-    string executeGame(tAgent* swarmAgent, tAgent* predatorAgent, FILE *data_file, bool report, double safetyDist, double predatorVisionRange, double predatorVisionAngle, int killDelay, double Es, double Emax, double Emin);
+    string executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FILE *data_file, bool report, double startingDist, double predatorVisionRange, double predatorVisionAngle, int killDelay);
     tGame();
     ~tGame();
     double calcDistanceSquared(double fromX, double fromY, double toX, double toY);
@@ -64,6 +64,10 @@ public:
     void recalcPredAndPreyDistTable(double preyX[], double preyY[], bool preyDead[],
                                     double predX, double predY,
                                     double predDists[swarmSize], double preyDists[swarmSize][swarmSize]);
+    void recalcPredAndPreyDistTableForOnePrey(double preyX[], double preyY[], bool preyDead[],
+                                              double predX, double predY,
+                                              double predDists[swarmSize], double preyDists[swarmSize][swarmSize],
+                                              int preyIndex);
     void applyBoundary(double& positionVal);
     double sum(vector<double> values);
     double average(vector<double> values);

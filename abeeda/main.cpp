@@ -59,13 +59,13 @@ char     *endptr;                /*  for strtol()              */
 
 void    setupBroadcast(void);
 void    doBroadcast(string data);
-string  findBestRun(tAgent *swarmAgent, tAgent *predatorAgent);
+string  findBestRun(vector<tAgent*> swarmAgents, tAgent *predatorAgent);
 
 using namespace std;
 
 //double  replacementRate             = 0.1;
 double  perSiteMutationRate         = 0.005;
-int     populationSize              = 100;
+int     populationSize              = swarmSize;
 int     totalGenerations            = 252;
 tGame   *game                       = NULL;
 
@@ -79,13 +79,10 @@ bool    display_directory           = false;
 bool    make_logic_table            = false;
 bool    make_dot_pred               = false;
 bool    make_dot_swarm              = false;
-double  safetyDist                  = 30.0 * 30.0;
+double  startingDist                = 30.0 * 30.0;
 double  predatorVisionAngle         = 180.0 / 2.0;
 double  predatorVisionRange         = 200.0 * 200.0;
 int     killDelay                   = 10;
-double  Es                          = 0.05;
-double  Emax                        = 0.9;
-double  Emin                        = 0.2;
 
 int main(int argc, char *argv[])
 {
@@ -168,20 +165,6 @@ int main(int argc, char *argv[])
             }
         }
         
-        // -p [int]: set GA population size
-        else if (strcmp(argv[i], "-p") == 0 && (i + 1) < argc)
-        {
-            ++i;
-            
-            populationSize = atoi(argv[i]);
-            
-            if (populationSize < 1)
-            {
-                cerr << "minimum GA population size permitted is 1." << endl;
-                exit(0);
-            }
-        }
-        
         // -t [int]: track best brains
         else if (strcmp(argv[i], "-t") == 0 && (i + 1) < argc)
         {
@@ -255,14 +238,14 @@ int main(int argc, char *argv[])
             make_dot_pred = true;
         }
         
-        // -sd [int]: set swarm safety distance (default: 30)
+        // -sd [int]: set swarm starting distance (default: 30)
         else if (strcmp(argv[i], "-sd") == 0 && (i + 1) < argc)
         {
             ++i;
-            safetyDist = atof(argv[i]);
+            startingDist = atof(argv[i]);
             
             // simulation works in distance squared
-            safetyDist *= safetyDist;
+            startingDist *= startingDist;
         }
         
         // -pva [int]: set predator vision angle (default: 180)
@@ -304,30 +287,6 @@ int main(int argc, char *argv[])
             
             killDelay = atoi(argv[i]);
         }
-        
-        // -es [float]: set confusion effect equation response gradient (default: 0.05)
-        else if (strcmp(argv[i], "-es") == 0 && (i + 1) < argc)
-        {
-            ++i;
-            
-            Es = atof(argv[i]);
-        }
-        
-        // -emax [float]: set confusion effect equation maximum value (default: 0.9)
-        else if (strcmp(argv[i], "-emax") == 0 && (i + 1) < argc)
-        {
-            ++i;
-            
-            Emax = atof(argv[i]);
-        }
-        
-        // -emin [float]: set confusion effect equation minimum value (default: 0.2)
-        else if (strcmp(argv[i], "-emin") == 0 && (i + 1) < argc)
-        {
-            ++i;
-            
-            Emin = atof(argv[i]);
-        }
     }
     
     // initial population setup
@@ -342,7 +301,17 @@ int main(int argc, char *argv[])
     
     if (display_only)
     {
-        string bestString = findBestRun(swarmAgent, predatorAgent);
+        // create clone swarm from that single brain
+        vector<tAgent*> cloneSwarm;
+        
+        for (int j = 0; j < swarmSize; ++j)
+        {
+            tAgent *cloneAgent = new tAgent;
+            cloneAgent->inherit(swarmAgent, 0.0, 0);
+            cloneSwarm.push_back(cloneAgent);
+        }
+        
+        string bestString = findBestRun(cloneSwarm, predatorAgent);
         bestString.append("X");
         doBroadcast(bestString);
         exit(0);
@@ -417,7 +386,17 @@ int main(int argc, char *argv[])
                 swarmAgent->loadAgent((char *)it->second[0].c_str());
                 predatorAgent->loadAgent((char *)it->second[1].c_str());
                 
-                string bestString = findBestRun(swarmAgent, predatorAgent);
+                // build clone swarm from the swarm agent brain
+                vector<tAgent*> cloneSwarm;
+                
+                for (int j = 0; j < swarmSize; ++j)
+                {
+                    tAgent *cloneAgent = new tAgent;
+                    cloneAgent->inherit(swarmAgent, 0.0, 0);
+                    cloneSwarm.push_back(cloneAgent);
+                }
+                
+                string bestString = findBestRun(cloneSwarm, predatorAgent);
                 
                 cout << "displaying video for run " << it->first << endl;
                 
@@ -459,7 +438,7 @@ int main(int argc, char *argv[])
     delete swarmAgent;
     swarmAgent = new tAgent;
     swarmAgent->setupRandomAgent(5000);
-    //swarmAgent->loadAgent("startSwarm.genome");
+    //swarmAgent->loadAgent((char *)"startSwarm.genome");
     
     delete predatorAgent;
     predatorAgent = new tAgent;
@@ -504,30 +483,19 @@ int main(int argc, char *argv[])
         double swarmAvgFitness = 0.0;
         double predatorAvgFitness = 0.0;
         
+        // entire swarm population evaluated every time predator agent is evaluated; fitness is avg of all tests
+        // predator agents are only evaluated once
 		for(int i = 0; i < populationSize; ++i)
         {
-            game->executeGame(swarmAgents[i], predatorAgents[i], NULL, false, safetyDist, predatorVisionRange, predatorVisionAngle, killDelay, Es, Emax, Emin);
+            game->executeGame(swarmAgents, predatorAgents[i], NULL, false, startingDist, predatorVisionRange, predatorVisionAngle, killDelay);
             
-            // store the swarm agent's corresponding predator agent
-            swarmAgents[i]->predator = new tAgent;
-            swarmAgents[i]->predator->inherit(predatorAgents[i], 0.0, predatorAgents[i]->born);
-            
-            // cleanup for memory management
-            predatorAgents[i]->nrPointingAtMe--;
-            predatorAgents[i]->nrOfOffspring--;
-            swarmAgents[i]->predator->ancestor = NULL;
-            
-            swarmAvgFitness += swarmAgents[i]->fitness;
-            predatorAvgFitness += predatorAgents[i]->fitness;
-            
-            //swarmAgents[i]->fitnesses.push_back(swarmAgents[i]->fitness);
-            //predatorAgents[i]->fitnesses.push_back(predatorAgents[i]->fitness);
-            
-            if(swarmAgents[i]->fitness > swarmMaxFitness)
+            for (int j = 0; j < swarmSize; ++j)
             {
-                swarmMaxFitness = swarmAgents[i]->fitness;
-                bestSwarmAgent = swarmAgents[i];
+                swarmAvgFitness += swarmAgents[j]->fitness;
+                swarmAgents[j]->fitnesses.push_back(swarmAgents[j]->fitness);
             }
+            
+            predatorAvgFitness += predatorAgents[i]->fitness;
             
             if(predatorAgents[i]->fitness > predatorMaxFitness)
             {
@@ -536,7 +504,26 @@ int main(int argc, char *argv[])
             }
 		}
         
-        swarmAvgFitness /= (double)populationSize;
+        // compute each swarm agent's fitness as its average fitness over all evaluations
+        for (int i = 0; i < swarmSize; ++i)
+        {
+            swarmAgents[i]->fitness = 0.0;
+            
+            for (int j = 0; j < swarmAgents[i]->fitnesses.size(); ++j)
+            {
+                swarmAgents[i]->fitness += swarmAgents[i]->fitnesses[j];
+            }
+            
+            swarmAgents[i]->fitness /= swarmAgents[i]->fitnesses.size();
+            
+            if(swarmAgents[i]->fitness > swarmMaxFitness)
+            {
+                swarmMaxFitness = swarmAgents[i]->fitness;
+                bestSwarmAgent = swarmAgents[i];
+            }
+        }
+        
+        swarmAvgFitness /= (double)(populationSize * swarmSize);
         predatorAvgFitness /= (double)populationSize;
 		
 		cout << "generation " << update << ": swarm [" << (int)swarmAvgFitness << " : " << (int)swarmMaxFitness << "] :: predator [" << (int)predatorAvgFitness << " : " << (int)predatorMaxFitness << "]" << endl;
@@ -548,7 +535,7 @@ int main(int argc, char *argv[])
             
             if (update % make_video_frequency == 0 || finalGeneration)
             {
-                string bestString = game->executeGame(bestSwarmAgent, bestPredatorAgent, NULL, true, safetyDist, predatorVisionRange, predatorVisionAngle, killDelay, Es, Emax, Emin);
+                string bestString = game->executeGame(swarmAgents, bestPredatorAgent, NULL, true, startingDist, predatorVisionRange, predatorVisionAngle, killDelay);
                 
                 if (finalGeneration)
                 {
@@ -631,11 +618,12 @@ int main(int argc, char *argv[])
 	swarmAgents[0]->ancestor->ancestor->saveGenome(swarmGenomeFileName.c_str());
     predatorAgents[0]->ancestor->ancestor->saveGenome(predatorGenomeFileName.c_str());
     
-    // save video and quantitative stats on the best swarm agent's LOD
-    vector<tAgent*> saveLOD;
+    // save video and quantitative stats on the best swarm and predator agent's LOD
+    vector<tAgent*> swarmLOD, predatorLOD;
     
     cout << "building ancestor list" << endl;
     
+    // swarm agents LOD
     // use 2 ancestors down from current population because that ancestor is highly likely to have high fitness
     tAgent* curAncestor = swarmAgents[0]->ancestor->ancestor;
     
@@ -644,7 +632,21 @@ int main(int argc, char *argv[])
         // don't add the base ancestor
         if (curAncestor->ancestor != NULL)
         {
-            saveLOD.insert(saveLOD.begin(), curAncestor);
+            swarmLOD.insert(swarmLOD.begin(), curAncestor);
+        }
+        
+        curAncestor = curAncestor->ancestor;
+    }
+    
+    // predator agents LOD
+    curAncestor = predatorAgents[0]->ancestor->ancestor;
+    
+    while (curAncestor != NULL)
+    {
+        // don't add the base ancestor
+        if (curAncestor->ancestor != NULL)
+        {
+            predatorLOD.insert(predatorLOD.begin(), curAncestor);
         }
         
         curAncestor = curAncestor->ancestor;
@@ -656,30 +658,39 @@ int main(int argc, char *argv[])
     
     cout << "analyzing ancestor list" << endl;
     
-    for (vector<tAgent*>::iterator it = saveLOD.begin(); it != saveLOD.end(); ++it)
+    for (int i = 0; i < swarmLOD.size(); ++i)
     {
-        if ((*it)->predator == NULL)
+        // collect quantitative stats
+        vector<tAgent*> cloneSwarm;
+        
+        for (int j = 0; j < swarmSize; ++j)
         {
-            cout << "NULL predator at " << (*it)->born << endl;
+            tAgent *cloneAgent = new tAgent;
+            cloneAgent->inherit(swarmLOD[i], 0.0, swarmLOD[i]->born);
+            cloneSwarm.push_back(cloneAgent);
         }
-        else
+        
+        game->executeGame(cloneSwarm, predatorLOD[i], LOD, false, startingDist, predatorVisionRange, predatorVisionAngle, killDelay);
+        
+        // make video
+        if (make_LOD_video)
         {
-            // collect quantitative stats
-            game->executeGame(*it, (*it)->predator, LOD, false, safetyDist, predatorVisionRange, predatorVisionAngle, killDelay, Es, Emax, Emin);
+            string bestString = findBestRun(cloneSwarm, predatorLOD[i]);
             
-            // make video
-            if (make_LOD_video)
+            if ( (i + 1) == swarmSize )
             {
-                string bestString = findBestRun(swarmAgent, predatorAgent);
-                
-                if ( (it + 1) == saveLOD.end() )
-                {
-                    bestString.append("X");
-                }
-                
-                doBroadcast(bestString);
+                bestString.append("X");
             }
+            
+            doBroadcast(bestString);
         }
+        
+        for (int j = 0; j < swarmSize; ++j)
+        {
+            delete cloneSwarm[j];
+        }
+        
+        cloneSwarm.clear();
     }
     
     fclose(LOD);
@@ -687,19 +698,28 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-string findBestRun(tAgent *swarmAgent, tAgent *predatorAgent)
+string findBestRun(vector<tAgent*> swarmAgents, tAgent *predatorAgent)
 {
     string reportString = "", bestString = "";
     double bestFitness = 0.0;
     
     for (int rep = 0; rep < 100; ++rep)
     {
-        reportString = game->executeGame(swarmAgent, predatorAgent, NULL, true, safetyDist, predatorVisionRange, predatorVisionAngle, killDelay, Es, Emax, Emin);
+        reportString = game->executeGame(swarmAgents, predatorAgent, NULL, true, startingDist, predatorVisionRange, predatorVisionAngle, killDelay);
         
-        if (swarmAgent->fitness > bestFitness)
+        double swarmFitness = 0.0;
+        
+        for (int i = 0; i < swarmSize; ++i)
+        {
+            swarmFitness += swarmAgents[i]->fitness;
+        }
+        
+        swarmFitness /= (double)swarmSize;
+        
+        if (swarmFitness > bestFitness)
         {
             bestString = reportString;
-            bestFitness = swarmAgent->fitness;
+            bestFitness = swarmFitness;
         }
     }
     
