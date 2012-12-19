@@ -313,7 +313,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         for (int predIndex = 0; predIndex < numPredators; ++predIndex)
         {
             // clear the predator sensors
-            for(int i = 0; i < predatorSensors; ++i)
+            for(int i = 0; i < predatorSensors * 2; ++i)
             {
                 predatorAgents[predIndex]->states[i] = 0;
             }
@@ -421,7 +421,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             // if the predator moved,
             if (predX[predIndex] != lastPredX[predIndex] && predY[predIndex] != lastPredY[predIndex])
             {
-                // recalculate the predator distances lookup table since the predator has moved
+                // recalculate the predator distances lookup table
                 recalcPredDistTable(preyX, preyY, preyDead, predX[predIndex], predY[predIndex], predToPreyDists[predIndex]);
                 
                 // recalculate the predator to predator distance lookup table
@@ -556,8 +556,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                 
                 switch(action)
                 {
-                        // do nothing
+                        // move straight ahead
                     case 0:
+                        lastPreyX[i] = preyX[i];
+                        lastPreyY[i] = preyY[i];
+                        
+                        preyX[i] += cosLookup[(int)preyA[i]] * 0.75;
+                        preyY[i] += sinLookup[(int)preyA[i]] * 0.75;
+                        
                         break;
                         
                         // turn 8 degrees right
@@ -593,14 +599,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                         
                         break;
                         
-                        // move straight ahead
+                        // do nothing
                     case 3:
-                        lastPreyX[i] = preyX[i];
-                        lastPreyY[i] = preyY[i];
-                        
-                        preyX[i] += cosLookup[(int)preyA[i]] * 0.75;
-                        preyY[i] += sinLookup[(int)preyA[i]] * 0.75;
-                        
                         break;
                         
                     default:
@@ -668,7 +668,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             // collision with prey?
             for (int preyIndex = 0; !collisionHappened && preyIndex < swarmSize; ++preyIndex)
             {
-                if (predToPreyDists[i][preyIndex] < collisionDist)
+                if (!preyDead[preyIndex] && predToPreyDists[i][preyIndex] < collisionDist)
                 {
                     collisionHappened = true;
                 }
