@@ -64,13 +64,12 @@ tGame::tGame()
 tGame::~tGame() { }
 
 // runs the simulation for the given agent(s)
-string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FILE *data_file, bool report, double startingDist, double predatorVisionRange, double predatorVisionAngle, int killDelay)
+string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FILE *data_file, bool report, double startingDist, double predatorVisionRange, double predatorVisionAngle, int killDelay, int numPredators)
 {
     // LOD data variables
     vector<double> bbSizes;
     vector<double> shortestDists;
     vector<double> swarmDensityCounts;
-    vector<int> predatorAngle, preyAngle;
     
     // swarm agent x, y, angles
     double preyX[swarmSize], preyY[swarmSize], preyA[swarmSize];
@@ -79,24 +78,25 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
     bool preyDead[swarmSize];
     
     // lookup table for distances between predator and swarm agents
-    double predDists[swarmSize];
+    double predToPreyDists[numPredators][swarmSize];
+    
+    // lookup table for distances between predator and other predator agents
+    double predToPredDists[numPredators][numPredators];
     
     // lookup table for distances between swarm agents and other swarm agents
-    double preyDists[swarmSize][swarmSize];
+    double preyToPreyDists[swarmSize][swarmSize];
     
     // counter of how many swarm agents are still alive
     int numAlive = swarmSize;
     
-    // # of attacks the predator made on the swarm
+    // # of attacks the predator(s) made on prey
     int numAttacks = 0;
     
     // predator X, Y, and angle
-    double predX = (double)(randDouble * gridX) - gridX / 2.0; //* 2.0) - gridX;
-    double predY = (double)(randDouble * gridY) - gridY / 2.0; //* 2.0) - gridY;
-    double lastPredX = predX, lastPredY = predY;
-    double predA = (int)(randDouble * 360.0);
+    double predX[numPredators], predY[numPredators], predA[numPredators];
+    double lastPredX[numPredators], lastPredY[numPredators];
     
-    int delay = 0;
+    int delay[numPredators];
     
     // string containing the information to create a video of the simulation
     string reportString = "";
@@ -107,14 +107,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         swarmAgents[i]->setupPhenotype();
         swarmAgents[i]->fitness = 1.0;
         swarmAgents[i]->resetBrain();
-    }
-    
-    // set up predator brain
-    predatorAgent->setupPhenotype();
-    predatorAgent->fitness = 1.0;
-    
-    for(int i = 0; i < swarmSize; ++i)
-    {
+        
         bool goodPos = true;
         
         do
@@ -142,8 +135,25 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         preyDead[i] = false;
     }
     
+    // group of clonal predators
+    vector<tAgent*> predatorAgents;
+    
+    // set up predator brain(s)
+    for (int i = 0; i < numPredators; ++i)
+    {
+        tAgent *clonePredator = new tAgent;
+        clonePredator->inherit(predatorAgent, 0.0, 0);
+        predatorAgent->setupPhenotype();
+        predatorAgent->fitness = 1.0;
+        lastPredX[i] = predX[i] = (double)(randDouble * gridX * 2.0) - gridX;
+        lastPredY[i] = predY[i] = (double)(randDouble * gridY * 2.0) - gridY;
+        predA[i] = (int)(randDouble * 360.0);
+        delay[i] = 0;
+        predatorAgents.push_back(clonePredator);
+    }
+    
     // initialize predator and prey lookup tables
-    recalcPredAndPreyDistTable(preyX, preyY, preyDead, predX, predY, predDists, preyDists);
+    recalcPredAndPreyDistTable(preyX, preyY, preyDead, predX, predY, predToPreyDists, preyToPreyDists, numPredators);
     
     /*       BEGINNING OF SIMULATION LOOP       */
     
@@ -154,9 +164,12 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         if(report)
         {
             // report X, Y, angle of predator
-            char text[1000];
-            sprintf(text,"%f,%f,%f,%d,%d,%d=", predX, predY, predA, 255, 0, 0);
-            reportString.append(text);
+            for (int i = 0; i < numPredators; ++i)
+            {
+                char text[1000];
+                sprintf(text,"%f,%f,%f,%d,%d,%d=", predX[i], predY[i], predA[i], 255, 0, 0);
+                reportString.append(text);
+            }
             
             // compute center of swarm
             /*double cX = 0.0, cY = 0.0;
@@ -168,7 +181,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             reportString.append(text2);*/
             
             // report X, Y, angle of all prey
-            for(int i = 0; i <swarmSize; ++i)
+            for(int i = 0; i < swarmSize; ++i)
             {
                 if (!preyDead[i])
                 {
@@ -238,9 +251,9 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     {
                         if (!preyDead[j] && i != j)
                         {
-                            if (preyDists[i][j] < shortestDist)
+                            if (preyToPreyDists[i][j] < shortestDist)
                             {
-                                shortestDist = preyDists[i][j];
+                                shortestDist = preyToPreyDists[i][j];
                             }
                         }
                     }
@@ -267,7 +280,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     {
                         if (!preyDead[j] && i != j)
                         {
-                            if (preyDists[i][j] <= startingDist)
+                            if (preyToPreyDists[i][j] <= startingDist)
                             {
                                 avgWithin += 1.0;
                             }
@@ -280,162 +293,158 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             
             swarmDensityCounts.push_back(avgWithin);
             
-            // store predator and prey angles
-            for(int i = 0; i < swarmSize; ++i)
-            {
-                if(!preyDead[i])
-                {
-                    predatorAngle.push_back((int)(predA/36.0));
-                    preyAngle.push_back((int)(preyA[i]/36.0));
-                }
-            }
-            
         }
         /*       END OF DATA GATHERING       */
         
         
-        /*       UPDATE PREDATOR       */
+        /*       UPDATE PREDATORS       */
         
-        // clear the predator sensors
-        for(int i = 0; i < predatorSensors; ++i)
+        for (int predIndex = 0; predIndex < numPredators; ++predIndex)
         {
-            predatorAgent->states[i] = 0;
-        }
-        
-        // update the predator sensors
-        for(int i = 0; i < swarmSize; ++i)
-        {
-            if (!preyDead[i])
+            // clear the predator sensors
+            for(int i = 0; i < predatorSensors; ++i)
             {
-                // don't bother if an agent is too far
-                if(predDists[i] < predatorVisionRange)
+                predatorAgents[predIndex]->states[i] = 0;
+            }
+            
+            // update the predator sensors
+            for(int i = 0; i < swarmSize; ++i)
+            {
+                if (!preyDead[i])
                 {
-                    double angle = calcAngle(predX, predY, predA, preyX[i], preyY[i]);
-                    
-                    // here we have to map the angle into the sensor, btw: angle in degrees
-                    if(fabs(angle) < predatorVisionAngle) // predator has a limited vision field in front of it
+                    // don't bother if an agent is too far
+                    if(predToPreyDists[predIndex][i] < predatorVisionRange)
                     {
-                        predatorAgent->states[(int)(angle / (predatorVisionAngle / ((double)predatorSensors / 2.0)) + ((double)predatorSensors / 2.0))] = 1;
+                        double angle = calcAngle(predX[predIndex], predY[predIndex], predA[predIndex], preyX[i], preyY[i]);
+                        
+                        // here we have to map the angle into the sensor, btw: angle in degrees
+                        if(fabs(angle) < predatorVisionAngle) // predator has a limited vision field in front of it
+                        {
+                            predatorAgents[predIndex]->states[(int)(angle / (predatorVisionAngle / ((double)predatorSensors / 2.0)) + ((double)predatorSensors / 2.0))] = 1;
+                        }
                     }
                 }
             }
-        }
-        
-        // activate the predator agent's brain
-        predatorAgent->updateStates();
-        
-        //                                      node 31                                              node 30
-        int action = ((predatorAgent->states[(maxNodes - 1)] & 1) << 1) + (predatorAgent->states[(maxNodes - 2)] & 1);
-        
-        switch(action)
-        {
-                // do nothing
-            case 0:
-                break;
-                
-                // turn right
-            case 1:
-                predA += 6.0;
-                
-                while(predA >= 360.0)
-                {
-                    predA -= 360.0;
-                }
-                
-                lastPredX = predX;
-                lastPredY = predY;
-                
-                predX += cosLookup[(int)predA] * 2.25;
-                predY += sinLookup[(int)predA] * 2.25;
-                
-                break;
-                
-                // turn left
-            case 2:
-                predA -= 6.0;
-                
-                while(predA < 0.0)
-                {
-                    predA += 360.0;
-                }
-                
-                lastPredX = predX;
-                lastPredY = predY;
-                
-                predX += cosLookup[(int)predA] * 2.25;
-                predY += sinLookup[(int)predA] * 2.25;
-                
-                break;
-                
-                // move straight ahead
-            case 3:
-                lastPredX = predX;
-                lastPredY = predY;
-                
-                predX += cosLookup[(int)predA] * 2.25;
-                predY += sinLookup[(int)predA] * 2.25;
-                
-                break;
-                
-            default:
-                break;
-        }
-        
-        // keep position within simulation boundary
-        applyBoundary(predX);
-        applyBoundary(predY);
-        
-        // recalculate the predator distances lookup table since the predator has moved
-        recalcPredDistTable(preyX, preyY, preyDead, predX, predY, predDists);
-        
-        // determine if the predator made a kill
-        if (numAlive > 2)
-        {
-            if (delay < 1)
+            
+            // activate the predator agent's brain
+            predatorAgents[predIndex]->updateStates();
+            
+            //                                      node 31                                              node 30
+            int action = ((predatorAgents[predIndex]->states[(maxNodes - 1)] & 1) << 1) + (predatorAgents[predIndex]->states[(maxNodes - 2)] & 1);
+            
+            switch(action)
             {
-                bool killed = false;
-                
-                for(int i = 0; !killed && i < swarmSize; ++i)
-                {
-                    // victim prey must be within kill range
-                    if (!preyDead[i] && (predDists[i] < collisionDist) && fabs(calcAngle(predX, predY, predA, preyX[i], preyY[i])) < predatorVisionAngle)
+                    // do nothing
+                case 0:
+                    break;
+                    
+                    // turn right
+                case 1:
+                    predA[predIndex] += 6.0;
+                    
+                    while(predA[predIndex] >= 360.0)
                     {
-                        ++numAttacks;
-                        
-                        int nearbyCount = 0;
-                        
-                        for (int j = 0; j < swarmSize; ++j)
+                        predA[predIndex] -= 360.0;
+                    }
+                    
+                    lastPredX[predIndex] = predX[predIndex];
+                    lastPredY[predIndex] = predY[predIndex];
+                    
+                    predX[predIndex] += cosLookup[(int)predA[predIndex]] * 2.25;
+                    predY[predIndex] += sinLookup[(int)predA[predIndex]] * 2.25;
+                    
+                    break;
+                    
+                    // turn left
+                case 2:
+                    predA[predIndex] -= 6.0;
+                    
+                    while(predA[predIndex] < 0.0)
+                    {
+                        predA[predIndex] += 360.0;
+                    }
+                    
+                    lastPredX[predIndex] = predX[predIndex];
+                    lastPredY[predIndex] = predY[predIndex];
+                    
+                    predX[predIndex] += cosLookup[(int)predA[predIndex]] * 2.25;
+                    predY[predIndex] += sinLookup[(int)predA[predIndex]] * 2.25;
+                    
+                    break;
+                    
+                    // move straight ahead
+                case 3:
+                    lastPredX[predIndex] = predX[predIndex];
+                    lastPredY[predIndex] = predY[predIndex];
+                    
+                    predX[predIndex] += cosLookup[(int)predA[predIndex]] * 2.25;
+                    predY[predIndex] += sinLookup[(int)predA[predIndex]] * 2.25;
+                    
+                    break;
+                    
+                default:
+                    break;
+            }
+            
+            // keep position within simulation boundary
+            applyBoundary(predX[predIndex]);
+            applyBoundary(predY[predIndex]);
+            
+            // recalculate the predator distances lookup table since the predator has moved
+            recalcPredDistTable(preyX, preyY, preyDead, predX[predIndex], predY[predIndex], predToPreyDists[predIndex]);
+            
+            // determine if the predator made a kill
+            if (numAlive > 2)
+            {
+                if (delay[predIndex] < 1)
+                {
+                    bool killed = false;
+                    
+                    for(int i = 0; !killed && i < swarmSize; ++i)
+                    {
+                        // victim prey must be within kill range
+                        if (!preyDead[i] && (predToPreyDists[predIndex][i] < collisionDist) && fabs(calcAngle(predX[predIndex], predY[predIndex], predA[predIndex], preyX[i], preyY[i])) < predatorVisionAngle)
                         {
-                            // other prey must be close to victim prey
-                            if (i != j && !preyDead[j] && preyDists[i][j] < startingDist)
-                            {
-                                // other prey must be within predator's retina
-                                if (predDists[j] < predatorVisionRange && fabs(calcAngle(predX, predY, predA, preyX[j], preyY[j])) < predatorVisionAngle)
-                                {
-                                    ++nearbyCount;
-                                }
-                            }
-                        }
-                        
-                        if (nearbyCount < 1 || randDouble < (1.0 / (double)(nearbyCount + 1.0)))
-                        {
+                            ++numAttacks;
+                            
+                            /*int nearbyCount = 0;
+                             
+                             for (int j = 0; j < swarmSize; ++j)
+                             {
+                             // other prey must be close to victim prey
+                             if (i != j && !preyDead[j] && preyToPreyDists[i][j] < startingDist)
+                             {
+                             // other prey must be within predator's retina
+                             if (predToPreyDists[j] < predatorVisionRange && fabs(calcAngle(predX, predY, predA, preyX[j], preyY[j])) < predatorVisionAngle)
+                             {
+                             ++nearbyCount;
+                             }
+                             }
+                             }
+                             
+                             if (nearbyCount < 1 || randDouble < (1.0 / (double)(nearbyCount + 1.0)))
+                             {
+                             preyDead[i] = killed = true;
+                             --numAlive;
+                             }*/
+                            
                             preyDead[i] = killed = true;
                             --numAlive;
+                            
+                            // add a short delay in between kill attempts
+                            delay[predIndex] = killDelay;
+                            break;
                         }
-                        
-                        // add a short delay in between kill attempts
-                        delay = killDelay;
-                        break;
                     }
                 }
-            }
-            else
-            {
-                --delay;
+                else
+                {
+                    delay[predIndex] -= 1;
+                }
             }
         }
         
-        /*       END OF PREDATOR UPDATE       */
+        /*       END OF PREDATORS UPDATE       */
         
         
         /*       UPDATE SWARM       */
@@ -456,12 +465,12 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     if(i != j && !preyDead[j])
                     {
                         //don't bother if an agent is too far
-                        if(preyDists[i][j] < preyVisionRange)
+                        if(preyToPreyDists[i][j] < preyVisionRange)
                         {
                             // ignore if agent i isn't even facing agent j (won't be within retina)
                             if (calcDistanceSquared(preyX[i] + cosLookup[(int)preyA[i]],
                                                     preyY[i] + sinLookup[(int)preyA[i]],
-                                                    preyX[j], preyY[j]) < preyDists[i][j])
+                                                    preyX[j], preyY[j]) < preyToPreyDists[i][j])
                             {
                                 double angle = calcAngle(preyX[i], preyY[i], preyA[i], preyX[j], preyY[j]);
                                 
@@ -475,15 +484,18 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     }
                 }
                 
-                // indicate the presence of the predator in agent i's retina
-                if (predDists[i] < preyVisionRange)
+                for (int predIndex = 0; predIndex < numPredators; ++predIndex)
                 {
-                    double angle = calcAngle(preyX[i], preyY[i], preyA[i], predX, predY);
-                    
-                    // prey has a limited vision field infront of it
-                    if(fabs(angle) < preyVisionAngle)
+                    // indicate the presence of the predator in agent i's retina
+                    if (predToPreyDists[predIndex][i] < preyVisionRange)
                     {
-                        swarmAgents[i]->states[preySensors + (int)(angle / (preyVisionAngle / ((double)preySensors / 2.0)) + ((double)preySensors / 2.0))] = 1;
+                        double angle = calcAngle(preyX[i], preyY[i], preyA[i], predX[predIndex], predY[predIndex]);
+                        
+                        // prey has a limited vision field infront of it
+                        if(fabs(angle) < preyVisionAngle)
+                        {
+                            swarmAgents[i]->states[preySensors + (int)(angle / (preyVisionAngle / ((double)preySensors / 2.0)) + ((double)preySensors / 2.0))] = 1;
+                        }
                     }
                 }
                 
@@ -563,7 +575,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         }
         
         // recalculate both the predator and prey distance lookup tables since the entire swarm has moved
-        recalcPredAndPreyDistTable(preyX, preyY, preyDead, predX, predY, predDists, preyDists);
+        recalcPredAndPreyDistTable(preyX, preyY, preyDead, predX, predY, predToPreyDists, preyToPreyDists, numPredators);
         
         /*       END OF SWARM UPDATE       */
         
@@ -580,14 +592,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     if (i != j && !preyDead[j])
                     {
                         // collision with other prey?
-                        if (preyDists[i][j] < collisionDist)
+                        if (preyToPreyDists[i][j] < collisionDist)
                         {
                             // reset prey back to its position before the collision
                             preyX[i] = lastPreyX[i];
                             preyY[i] = lastPreyY[i];
                             
                             // update the lookup table entry for the affected prey
-                            recalcPredAndPreyDistTableForOnePrey(preyX, preyY, preyDead, predX, predY, predDists, preyDists, i);
+                            recalcPredAndPreyDistTableForOnePrey(preyX, preyY, preyDead, predX, predY, predToPreyDists, preyToPreyDists, i, numPredators);
                             
                             collisionHappened = true;
                         }
@@ -595,16 +607,19 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                 }
                 
                 // collision with predator?
-                if (!collisionHappened && predDists[i] < collisionDist)
+                for (int predIndex = 0; !collisionHappened && predIndex < numPredators; ++predIndex)
                 {
-                    // move prey back
-                    preyX[i] = lastPreyX[i];
-                    preyY[i] = lastPreyY[i];
-                    
-                    // update the distance lookup tables for the affected predator and prey
-                    recalcPredAndPreyDistTableForOnePrey(preyX, preyY, preyDead, predX, predY, predDists, preyDists, i);
-                    
-                    collisionHappened = true;
+                    if (!collisionHappened && predToPreyDists[predIndex][i] < collisionDist)
+                    {
+                        // move prey back
+                        preyX[i] = lastPreyX[i];
+                        preyY[i] = lastPreyY[i];
+                        
+                        // update the distance lookup tables for the affected predator and prey
+                        recalcPredAndPreyDistTableForOnePrey(preyX, preyY, preyDead, predX, predY, predToPreyDists, preyToPreyDists, i, numPredators);
+                        
+                        collisionHappened = true;
+                    }
                 }
             }
         }
@@ -629,7 +644,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         
         avgSwarmFitness /= (double)swarmSize;
         
-        fprintf(data_file, "%d,%f,%f,%d,%f,%f,%f,%f,%i,%i,%i,%f,%i\n",
+        fprintf(data_file, "%d,%f,%f,%d,%f,%f,%f,%f,%i,%i,%i,%i\n",
                 swarmAgents[0]->born,                           // update born (prey)
                 avgSwarmFitness,                                // swarm fitness
                 predatorAgent->fitness,                         // predator fitness
@@ -640,8 +655,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                 average(swarmDensityCounts),                    // average # of agents within 20 units of each other
                 neuronsConnectedToPreyRetina(swarmAgents[0]),       // # neurons connected to prey part of retina (prey)
                 neuronsConnectedToPredatorRetina(swarmAgents[0]),   // # neurons connected to predator part of retina (prey)
-                neuronsConnectedToPreyRetina(predatorAgent),    // # neurons connected to prey part of retina (predator)
-                mutualInformation(predatorAngle, preyAngle),    // mutual Information between prey flight angle and predator flight angle
+                neuronsConnectedToPreyRetina(predatorAgents[0]),    // # neurons connected to prey part of retina (predator)
                 numAttacks
                 );
     }
@@ -701,35 +715,40 @@ void tGame::calcSwarmCenter(double preyX[], double preyY[], bool preyDead[], dou
 // recalculates only the predator distance lookup table
 void tGame::recalcPredDistTable(double preyX[], double preyY[], bool preyDead[],
                                 double predX, double predY,
-                                double predDists[swarmSize])
+                                double predToPreyDists[swarmSize])
 {
     for (int i = 0; i < swarmSize; ++i)
     {
         if (!preyDead[i])
         {
-            predDists[i] = calcDistanceSquared(predX, predY, preyX[i], preyY[i]);
+            predToPreyDists[i] = calcDistanceSquared(predX, predY, preyX[i], preyY[i]);
         }
     }
 }
 
 // recalculates the predator and prey distance lookup tables
 void tGame::recalcPredAndPreyDistTable(double preyX[], double preyY[], bool preyDead[],
-                                       double predX, double predY,
-                                       double predDists[swarmSize], double preyDists[swarmSize][swarmSize])
+                                       double predX[], double predY[],
+                                       double predToPreyDists[][swarmSize], double preyToPreyDists[swarmSize][swarmSize],
+                                       int numPredators)
 {
     for (int i = 0; i < swarmSize; ++i)
     {
         if (!preyDead[i])
         {
-            predDists[i] = calcDistanceSquared(predX, predY, preyX[i], preyY[i]);
-            preyDists[i][i] = 0.0;
+            preyToPreyDists[i][i] = 0.0;
+            
+            for (int predIndex = 0; predIndex < numPredators; ++predIndex)
+            {
+                predToPreyDists[predIndex][i] = calcDistanceSquared(predX[predIndex], predY[predIndex], preyX[i], preyY[i]);
+            }
             
             for (int j = i + 1; j < swarmSize; ++j)
             {
                 if (!preyDead[j])
                 {
-                    preyDists[i][j] = calcDistanceSquared(preyX[i], preyY[i], preyX[j], preyY[j]);
-                    preyDists[j][i] = preyDists[i][j];
+                    preyToPreyDists[i][j] = calcDistanceSquared(preyX[i], preyY[i], preyX[j], preyY[j]);
+                    preyToPreyDists[j][i] = preyToPreyDists[i][j];
                 }
             }
         }
@@ -738,18 +757,21 @@ void tGame::recalcPredAndPreyDistTable(double preyX[], double preyY[], bool prey
 
 // recalculates the predator and prey distance lookup tables only for a given prey
 void tGame::recalcPredAndPreyDistTableForOnePrey(double preyX[], double preyY[], bool preyDead[],
-                                                 double predX, double predY,
-                                                 double predDists[swarmSize], double preyDists[swarmSize][swarmSize],
-                                                 int preyIndex)
+                                                 double predX[], double predY[],
+                                                 double predToPreyDists[][swarmSize], double preyToPreyDists[swarmSize][swarmSize],
+                                                 int preyIndex, int numPredators)
 {
-    predDists[preyIndex] = calcDistanceSquared(predX, predY, preyX[preyIndex], preyY[preyIndex]);
+    for (int predIndex = 0; predIndex < numPredators; ++predIndex)
+    {
+        predToPreyDists[predIndex][preyIndex] = calcDistanceSquared(predX[predIndex], predY[predIndex], preyX[preyIndex], preyY[preyIndex]);
+    }
     
     for (int j = 0; j < swarmSize; ++j)
     {
         if (preyIndex != j && !preyDead[j])
         {
-            preyDists[preyIndex][j] = calcDistanceSquared(preyX[preyIndex], preyY[preyIndex], preyX[j], preyY[j]);
-            preyDists[j][preyIndex] = preyDists[preyIndex][j];
+            preyToPreyDists[preyIndex][j] = calcDistanceSquared(preyX[preyIndex], preyY[preyIndex], preyX[j], preyY[j]);
+            preyToPreyDists[j][preyIndex] = preyToPreyDists[preyIndex][j];
         }
     }
 }

@@ -83,6 +83,7 @@ double  startingDist                = 30.0 * 30.0;
 double  predatorVisionAngle         = 180.0 / 2.0;
 double  predatorVisionRange         = 200.0 * 200.0;
 int     killDelay                   = 10;
+int     numPredators                = 1;
 
 int main(int argc, char *argv[])
 {
@@ -287,6 +288,14 @@ int main(int argc, char *argv[])
             
             killDelay = atoi(argv[i]);
         }
+        
+        // -np [int]: set number of predators in the simulation (default: 1)
+        else if (strcmp(argv[i], "-np") == 0 && (i + 1) < argc)
+        {
+            ++i;
+            
+            numPredators = atoi(argv[i]);
+        }
     }
     
     // initial population setup
@@ -487,7 +496,7 @@ int main(int argc, char *argv[])
         // predator agents are only evaluated once
 		for(int i = 0; i < populationSize; ++i)
         {
-            game->executeGame(swarmAgents, predatorAgents[i], NULL, false, startingDist, predatorVisionRange, predatorVisionAngle, killDelay);
+            game->executeGame(swarmAgents, predatorAgents[i], NULL, false, startingDist, predatorVisionRange, predatorVisionAngle, killDelay, numPredators);
             
             for (int j = 0; j < swarmSize; ++j)
             {
@@ -535,7 +544,7 @@ int main(int argc, char *argv[])
             
             if (update % make_video_frequency == 0 || finalGeneration)
             {
-                string bestString = game->executeGame(swarmAgents, bestPredatorAgent, NULL, true, startingDist, predatorVisionRange, predatorVisionAngle, killDelay);
+                string bestString = game->executeGame(swarmAgents, bestPredatorAgent, NULL, true, startingDist, predatorVisionRange, predatorVisionAngle, killDelay, numPredators);
                 
                 if (finalGeneration)
                 {
@@ -654,7 +663,7 @@ int main(int argc, char *argv[])
     
     FILE *LOD = fopen(LODFileName.c_str(), "w");
 
-    fprintf(LOD, "generation,prey_fitness,predator_fitness,num_alive_end,avg_bb_size,var_bb_size,avg_shortest_dist,swarm_density_count,prey_neurons_connected_prey_retina,prey_neurons_connected_predator_retina,predator_neurons_connected_prey_retina,mutual_info,num_attacks\n");
+    fprintf(LOD, "generation,prey_fitness,predator_fitness,num_alive_end,avg_bb_size,var_bb_size,avg_shortest_dist,swarm_density_count,prey_neurons_connected_prey_retina,prey_neurons_connected_predator_retina,predator_neurons_connected_prey_retina,num_attacks\n");
     
     cout << "analyzing ancestor list" << endl;
     
@@ -670,7 +679,7 @@ int main(int argc, char *argv[])
             cloneSwarm.push_back(cloneAgent);
         }
         
-        game->executeGame(cloneSwarm, predatorLOD[i], LOD, false, startingDist, predatorVisionRange, predatorVisionAngle, killDelay);
+        game->executeGame(cloneSwarm, predatorLOD[i], LOD, false, startingDist, predatorVisionRange, predatorVisionAngle, killDelay, numPredators);
         
         // make video
         if (make_LOD_video)
@@ -705,7 +714,7 @@ string findBestRun(vector<tAgent*> swarmAgents, tAgent *predatorAgent)
     
     for (int rep = 0; rep < 100; ++rep)
     {
-        reportString = game->executeGame(swarmAgents, predatorAgent, NULL, true, startingDist, predatorVisionRange, predatorVisionAngle, killDelay);
+        reportString = game->executeGame(swarmAgents, predatorAgent, NULL, true, startingDist, predatorVisionRange, predatorVisionAngle, killDelay, numPredators);
         
         double swarmFitness = 0.0;
         

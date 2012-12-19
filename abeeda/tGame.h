@@ -52,7 +52,7 @@ class tGame{
 public:
     tExperiment theExperiment;
     void loadExperiment(char *filename);
-    string executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FILE *data_file, bool report, double startingDist, double predatorVisionRange, double predatorVisionAngle, int killDelay);
+    string executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FILE *data_file, bool report, double startingDist, double predatorVisionRange, double predatorVisionAngle, int killDelay, int numPredators);
     tGame();
     ~tGame();
     double calcDistanceSquared(double fromX, double fromY, double toX, double toY);
@@ -60,14 +60,15 @@ public:
     void calcSwarmCenter(double preyX[], double preyY[], bool preyDead[], double& preyCenterX, double& preyCenterY);
     void recalcPredDistTable(double preyX[], double preyY[], bool preyDead[],
                              double predX, double predY,
-                             double predDists[swarmSize]);
+                             double predToPreyDists[swarmSize]);
     void recalcPredAndPreyDistTable(double preyX[], double preyY[], bool preyDead[],
-                                    double predX, double predY,
-                                    double predDists[swarmSize], double preyDists[swarmSize][swarmSize]);
+                                    double predX[], double predY[],
+                                    double predToPreyDists[][swarmSize], double preyToPreyDists[swarmSize][swarmSize],
+                                    int numPredators);
     void recalcPredAndPreyDistTableForOnePrey(double preyX[], double preyY[], bool preyDead[],
-                                              double predX, double predY,
-                                              double predDists[swarmSize], double preyDists[swarmSize][swarmSize],
-                                              int preyIndex);
+                                              double predX[], double predY[],
+                                              double predToPreyDists[][swarmSize], double preyToPreyDists[swarmSize][swarmSize],
+                                              int preyIndex, int numPredators);
     void applyBoundary(double& positionVal);
     double sum(vector<double> values);
     double average(vector<double> values);
