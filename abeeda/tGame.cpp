@@ -443,6 +443,18 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             }
         }
         
+        // recalculate the predator to predator distance lookup table
+        for (int i = 0; i < numPredators; ++i)
+        {
+            predToPredDists[i][i] = 0.0;
+            
+            for (int j = i; j < numPredators; ++j)
+            {
+                predToPredDists[i][j] = calcDistanceSquared(predX[i], predY[i], predX[j], predY[j]);
+                predToPredDists[i][j] = predToPredDists[j][i];
+            }
+        }
+        
         /*       END OF PREDATORS UPDATE       */
         
         
