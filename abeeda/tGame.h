@@ -55,6 +55,7 @@ public:
     string executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FILE *data_file, bool report, double startingDist, double predatorVisionRange, double predatorVisionAngle, int killDelay, int numPredators);
     tGame();
     ~tGame();
+    void applyBoundary(double& positionVal);
     double calcDistanceSquared(double fromX, double fromY, double toX, double toY);
     double calcAngle(double fromX, double fromY, double fromAngle, double toX, double toY);
     void calcSwarmCenter(double preyX[], double preyY[], bool preyDead[], double& preyCenterX, double& preyCenterY);
@@ -69,7 +70,6 @@ public:
                                               double predX[], double predY[],
                                               double predToPreyDists[][swarmSize], double preyToPreyDists[swarmSize][swarmSize],
                                               int preyIndex, int numPredators);
-    void applyBoundary(double& positionVal);
     double sum(vector<double> values);
     double average(vector<double> values);
     double variance(vector<double> values);

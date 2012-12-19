@@ -35,6 +35,8 @@
 #define totalStepsInSimulation 2000
 #define gridX 256.0
 #define gridY 256.0
+#define gridXAcross 2.0 * gridX
+#define gridYAcross 2.0 * gridY
 #define collisionDist 5.0 * 5.0
 #define boundaryDist 250.0
 
@@ -740,15 +742,73 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
     return reportString;
 }
 
+// wraps a position around a preset boundary (toroidal world)
+void tGame::applyBoundary(double& positionVal)
+{
+    double val = positionVal;
+    
+    if (fabs(val) > boundaryDist)
+    {
+        if (val < 0)
+        {
+            val = boundaryDist;
+        }
+        else
+        {
+            val = -1.0 * boundaryDist;
+        }
+    }
+    
+    positionVal = val;
+}
 
-// calculates the distance^2 between two points
+/*// maintains a position within a preset boundary
+ void tGame::applyBoundary(double& positionVal)
+ {
+     double val = positionVal;
+     
+     if (fabs(val) > boundaryDist)
+     {
+         if (val < 0)
+         {
+            val = -1.0 * boundaryDist;
+         }
+         else
+         {
+            val = boundaryDist;
+         }
+     }
+     
+     positionVal = val;
+ }*/
+
+// calculates the distance^2 between two points (toroidal world)
+double tGame::calcDistanceSquared(double fromX, double fromY, double toX, double toY)
+{
+    double diffX = fabs(fromX - toX);
+    double diffY = fabs(fromY - toY);
+    
+    if (diffX > gridX)
+    {
+        diffX = gridXAcross - diffX;
+    }
+    
+    if (diffY > gridY)
+    {
+        diffY = gridYAcross - diffY;
+    }
+    
+    return ( diffX * diffX ) + ( diffY * diffY );
+}
+
+/*// calculates the distance^2 between two points
 double tGame::calcDistanceSquared(double fromX, double fromY, double toX, double toY)
 {
     double diffX = fromX - toX;
     double diffY = fromY - toY;
     
     return ( diffX * diffX ) + ( diffY * diffY );
-}
+}*/
 
 // calculates the angle between two agents
 double tGame::calcAngle(double fromX, double fromY, double fromAngle, double toX, double toY)
@@ -851,26 +911,6 @@ void tGame::recalcPredAndPreyDistTableForOnePrey(double preyX[], double preyY[],
             preyToPreyDists[j][preyIndex] = preyToPreyDists[preyIndex][j];
         }
     }
-}
-
-// maintains a position within a preset boundary
-void tGame::applyBoundary(double& positionVal)
-{
-    double val = positionVal;
-    
-    if (fabs(val) > boundaryDist)
-    {
-        if (val < 0)
-        {
-            val = -1.0 * boundaryDist;
-        }
-        else
-        {
-            val = boundaryDist;
-        }
-    }
-    
-    positionVal = val;
 }
 
 // sums a vector of values
