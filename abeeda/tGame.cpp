@@ -35,7 +35,7 @@
 #define totalStepsInSimulation 2000
 #define gridX 256.0
 #define gridY 256.0
-#define collisionDist 10.0 * 10.0
+#define collisionDist 5.0 * 5.0
 #define boundaryDist 250.0
 
 // precalculated lookup tables for the game
@@ -370,6 +370,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     
                     predX[predIndex] += cosLookup[(int)predA[predIndex]] * 2.25;
                     predY[predIndex] += sinLookup[(int)predA[predIndex]] * 2.25;
+                    
                     break;
                     
                     // turn right
@@ -624,7 +625,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         /*       COLLISION DETECTION       */
         
         // check if any prey collided with another prey
-        for (int i = 0; i < swarmSize; ++i)
+        /*for (int i = 0; i < swarmSize; ++i)
         {
             bool collisionHappened = false;
             
@@ -649,7 +650,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     recalcPredAndPreyDistTableForOnePrey(preyX, preyY, preyDead, predX, predY, predToPreyDists, preyToPreyDists, i, numPredators);
                 }
             }
-        }
+        }*/
         
         // check if any predator collided with another predator OR collided with a prey (& didn't consume it)
         for (int i = 0; i < numPredators; ++i)
@@ -659,7 +660,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             // collision with predator?
             for (int predIndex = 0; !collisionHappened && predIndex < numPredators; ++predIndex)
             {
-                if (predToPredDists[i][predIndex] < collisionDist)
+                if (i != predIndex && predToPredDists[i][predIndex] < collisionDist)
                 {
                     collisionHappened = true;
                 }
