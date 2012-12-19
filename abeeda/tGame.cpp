@@ -119,7 +119,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             // make sure prey don't start too close together
             for (int j = 0; j < i; ++j)
             {
-                if (calcDistanceSquared(preyX[i], preyY[i], preyX[j], preyY[j]) < startingDist)
+                if (calcDistanceSquared(preyX[i], preyY[i], preyX[j], preyY[j]) <= startingDist)
                 {
                     goodPos = false;
                     break;
