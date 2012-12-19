@@ -71,10 +71,9 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
     vector<double> shortestDists;
     vector<double> swarmDensityCounts;
     
-    // swarm agent x, y, angles
+    // swarm agent x, y, angles, alive status
     double preyX[swarmSize], preyY[swarmSize], preyA[swarmSize];
     double lastPreyX[swarmSize], lastPreyY[swarmSize];
-    // swarm alive status
     bool preyDead[swarmSize];
     
     // lookup table for distances between predator and swarm agents
@@ -143,8 +142,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
     {
         tAgent *clonePredator = new tAgent;
         clonePredator->inherit(predatorAgent, 0.0, 0);
-        predatorAgent->setupPhenotype();
-        predatorAgent->fitness = 1.0;
+        clonePredator->setupPhenotype();
+        clonePredator->fitness = 1.0;
         lastPredX[i] = predX[i] = (double)(randDouble * gridX * 2.0) - gridX;
         lastPredY[i] = predY[i] = (double)(randDouble * gridY * 2.0) - gridY;
         predA[i] = (int)(randDouble * 360.0);
@@ -659,6 +658,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                 numAttacks
                 );
     }
+    
+    // cleanup for clone predator agents
+    for (int i = 0; i < numPredators; ++i)
+    {
+        delete predatorAgents[i];
+    }
+    
+    predatorAgents.clear();
     
     return reportString;
 }
