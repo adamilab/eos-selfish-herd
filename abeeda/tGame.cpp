@@ -35,7 +35,7 @@
 #define totalStepsInSimulation 2000
 #define gridX 256.0
 #define gridY 256.0
-#define collisionDist 5.0 * 5.0
+#define collisionDist 10.0 * 10.0
 #define boundaryDist 250.0
 
 // precalculated lookup tables for the game
@@ -451,7 +451,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             for (int j = i; j < numPredators; ++j)
             {
                 predToPredDists[i][j] = calcDistanceSquared(predX[i], predY[i], predX[j], predY[j]);
-                predToPredDists[i][j] = predToPredDists[j][i];
+                predToPredDists[j][i] = predToPredDists[i][j];
             }
         }
         
@@ -592,6 +592,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         
         /*       COLLISION DETECTION       */
         
+        // check if any prey collided with another prey
         for (int i = 0; i < swarmSize; ++i)
         {
             bool collisionHappened = false;
@@ -600,38 +601,65 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             {
                 for (int j = 0; !collisionHappened && j < swarmSize; ++j)
                 {
-                    if (i != j && !preyDead[j])
+                    // collision with other prey?
+                    if (i != j && !preyDead[j] && preyToPreyDists[i][j] < collisionDist)
                     {
-                        // collision with other prey?
-                        if (preyToPreyDists[i][j] < collisionDist)
-                        {
-                            // reset prey back to its position before the collision
-                            preyX[i] = lastPreyX[i];
-                            preyY[i] = lastPreyY[i];
-                            
-                            // update the lookup table entry for the affected prey
-                            recalcPredAndPreyDistTableForOnePrey(preyX, preyY, preyDead, predX, predY, predToPreyDists, preyToPreyDists, i, numPredators);
-                            
-                            collisionHappened = true;
-                        }
-                    }
-                }
-                
-                // collision with predator?
-                for (int predIndex = 0; !collisionHappened && predIndex < numPredators; ++predIndex)
-                {
-                    if (!collisionHappened && predToPreyDists[predIndex][i] < collisionDist)
-                    {
-                        // move prey back
-                        preyX[i] = lastPreyX[i];
-                        preyY[i] = lastPreyY[i];
-                        
-                        // update the distance lookup tables for the affected predator and prey
-                        recalcPredAndPreyDistTableForOnePrey(preyX, preyY, preyDead, predX, predY, predToPreyDists, preyToPreyDists, i, numPredators);
-                        
                         collisionHappened = true;
                     }
                 }
+                
+                if (collisionHappened)
+                {
+                    // reset prey back to its position before the collision
+                    preyX[i] = lastPreyX[i];
+                    preyY[i] = lastPreyY[i];
+                    
+                    // update the lookup table entry for the affected prey
+                    recalcPredAndPreyDistTableForOnePrey(preyX, preyY, preyDead, predX, predY, predToPreyDists, preyToPreyDists, i, numPredators);
+                }
+            }
+        }
+        
+        // check if any predator collided with another predator OR collided with a prey (& didn't consume it)
+        for (int i = 0; i < numPredators; ++i)
+        {
+            bool collisionHappened = false;
+            
+            // collision with predator?
+            for (int predIndex = 0; !collisionHappened && predIndex < numPredators; ++predIndex)
+            {
+                if (predToPredDists[i][predIndex] < collisionDist)
+                {
+                    collisionHappened = true;
+                }
+            }
+            
+            // collision with prey?
+            for (int preyIndex = 0; !collisionHappened && preyIndex < swarmSize; ++preyIndex)
+            {
+                if (predToPreyDists[i][preyIndex] < collisionDist)
+                {
+                    collisionHappened = true;
+                }
+            }
+            
+            if (collisionHappened)
+            {
+                // move predator back
+                predX[i] = lastPredX[i];
+                predY[i] = lastPredY[i];
+                
+                // recalculate the predator to predator distance lookup table
+                for (int j = 0; j < numPredators; ++j)
+                {
+                    if (i != j)
+                    {
+                        predToPredDists[i][j] = calcDistanceSquared(predX[i], predY[i], predX[j], predY[j]);
+                        predToPredDists[j][i] = predToPredDists[i][j];
+                    }
+                }
+                
+                recalcPredDistTable(preyX, preyY, preyDead, predX[i], predY[i], predToPreyDists[i]);
             }
         }
         
@@ -650,10 +678,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         
         for (int i = 0; i < swarmSize; ++i)
         {
-            avgSwarmFitness += swarmAgents[i]->fitness;
+            avgSwarmFitness += swarmAgents[i]->fitness / (double)swarmSize;
         }
-        
-        avgSwarmFitness /= (double)swarmSize;
         
         fprintf(data_file, "%d,%f,%f,%d,%f,%f,%f,%f,%i,%i,%i,%i\n",
                 swarmAgents[0]->born,                           // update born (prey)
