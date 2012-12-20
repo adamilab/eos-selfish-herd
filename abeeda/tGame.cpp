@@ -360,8 +360,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             // activate the predator agent's brain
             predatorAgents[predIndex]->updateStates();
             
-            //                                      node 31                                              node 30
-            int action = ((predatorAgents[predIndex]->states[(maxNodes - 1)] & 1) << 1) + (predatorAgents[predIndex]->states[(maxNodes - 2)] & 1);
+            int action = 0;
+            
+            // if predator is processing prey, it just moves forward
+            if (delay[predIndex] < 1)
+            {
+                //                                      node 31                                              node 30
+                action = ((predatorAgents[predIndex]->states[(maxNodes - 1)] & 1) << 1) + (predatorAgents[predIndex]->states[(maxNodes - 2)] & 1);
+            }
             
             switch(action)
             {
@@ -655,7 +661,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         }*/
         
         // check if any predator collided with another predator OR collided with a prey (& didn't consume it)
-        for (int i = 0; i < numPredators; ++i)
+        /*for (int i = 0; i < numPredators; ++i)
         {
             bool collisionHappened = false;
             
@@ -695,7 +701,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                 
                 recalcPredDistTable(preyX, preyY, preyDead, predX[i], predY[i], predToPreyDists[i]);
             }
-        }
+        }*/
         
         /*       END COLLISION DETECTION       */
         

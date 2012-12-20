@@ -82,7 +82,7 @@ bool    make_dot_swarm              = false;
 double  startingDist                = 30.0 * 30.0;
 double  predatorVisionAngle         = 180.0 / 2.0;
 double  predatorVisionRange         = 200.0 * 200.0;
-int     killDelay                   = 10;
+int     killDelay                   = 50;
 int     numPredators                = 1;
 
 int main(int argc, char *argv[])
