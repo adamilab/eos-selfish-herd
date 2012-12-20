@@ -108,27 +108,9 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         swarmAgents[i]->setupPhenotype();
         swarmAgents[i]->fitness = 1.0;
         swarmAgents[i]->resetBrain();
-        
-        bool goodPos = true;
-        
-        do
-        {
-            goodPos = true;
-            
-            preyX[i] = (double)(randDouble * gridX) - gridX / 2.0;//(double)(randDouble * gridX * 2.0) - gridX;
-            preyY[i] = (double)(randDouble * gridY) - gridY / 2.0;//(double)(randDouble * gridY * 2.0) - gridY;
-            
-            // make sure prey don't start too close together
-            for (int j = 0; j < i; ++j)
-            {
-                if (calcDistanceSquared(preyX[i], preyY[i], preyX[j], preyY[j]) <= startingDist)
-                {
-                    goodPos = false;
-                    break;
-                }
-            }
-            
-        } while (!goodPos);
+
+        preyX[i] = (double)(randDouble * gridX) - gridX / 2.0;//(double)(randDouble * gridX * 2.0) - gridX;
+        preyY[i] = (double)(randDouble * gridY) - gridY / 2.0;//(double)(randDouble * gridY * 2.0) - gridY;
         
         lastPreyX[i] = preyX[i];
         lastPreyY[i] = preyY[i];
