@@ -365,14 +365,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             
             switch(action)
             {
-                    // move straight ahead
+                    // do nothing
                 case 0:
-                    lastPredX[predIndex] = predX[predIndex];
-                    lastPredY[predIndex] = predY[predIndex];
-                    
-                    predX[predIndex] += cosLookup[(int)predA[predIndex]] * 2.25;
-                    predY[predIndex] += sinLookup[(int)predA[predIndex]] * 2.25;
-                    
                     break;
                     
                     // turn right
@@ -409,8 +403,13 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     
                     break;
                     
-                    // do nothing
+                    // move straight ahead
                 case 3:
+                    lastPredX[predIndex] = predX[predIndex];
+                    lastPredY[predIndex] = predY[predIndex];
+                    
+                    predX[predIndex] += cosLookup[(int)predA[predIndex]] * 2.25;
+                    predY[predIndex] += sinLookup[(int)predA[predIndex]] * 2.25;
                     break;
                     
                 default:
@@ -559,14 +558,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                 
                 switch(action)
                 {
-                        // move straight ahead
+                        // do nothing
                     case 0:
-                        lastPreyX[i] = preyX[i];
-                        lastPreyY[i] = preyY[i];
-                        
-                        preyX[i] += cosLookup[(int)preyA[i]] * 0.75;
-                        preyY[i] += sinLookup[(int)preyA[i]] * 0.75;
-                        
                         break;
                         
                         // turn 8 degrees right
@@ -602,8 +595,13 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                         
                         break;
                         
-                        // do nothing
+                        // move straight ahead
                     case 3:
+                        lastPreyX[i] = preyX[i];
+                        lastPreyY[i] = preyY[i];
+                        
+                        preyX[i] += cosLookup[(int)preyA[i]] * 0.75;
+                        preyY[i] += sinLookup[(int)preyA[i]] * 0.75;
                         break;
                         
                     default:
