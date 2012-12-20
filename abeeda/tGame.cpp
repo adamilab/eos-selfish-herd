@@ -115,8 +115,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         {
             goodPos = true;
             
-            preyX[i] = (double)(randDouble * gridX) - gridX / 2.0;//(double)(randDouble * gridX * 2.0) - gridX;
-            preyY[i] = (double)(randDouble * gridY) - gridY / 2.0;//(double)(randDouble * gridY * 2.0) - gridY;
+            preyX[i] = (double)(randDouble * gridX * 2.0) - gridX;
+            preyY[i] = (double)(randDouble * gridY * 2.0) - gridY;
             
             // make sure prey don't start too close together
             for (int j = 0; j < i; ++j)
