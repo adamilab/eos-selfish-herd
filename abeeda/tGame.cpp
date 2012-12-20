@@ -109,8 +109,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         swarmAgents[i]->fitness = 1.0;
         swarmAgents[i]->resetBrain();
 
-        preyX[i] = (double)(randDouble * gridX) - gridX / 2.0;//(double)(randDouble * gridX * 2.0) - gridX;
-        preyY[i] = (double)(randDouble * gridY) - gridY / 2.0;//(double)(randDouble * gridY * 2.0) - gridY;
+        preyX[i] = 0.0;//(double)(randDouble * gridX) - gridX / 2.0;//(double)(randDouble * gridX * 2.0) - gridX;
+        preyY[i] = 0.0;//(double)(randDouble * gridY) - gridY / 2.0;//(double)(randDouble * gridY * 2.0) - gridY;
         
         lastPreyX[i] = preyX[i];
         lastPreyY[i] = preyY[i];
