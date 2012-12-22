@@ -129,16 +129,26 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         clonePredator->setupPhenotype();
         clonePredator->fitness = 1.0;
         
-        int negPosX = 1, negPosY = 1;
+        double negPosX = 1, negPosY = 1;
         
-        if (i == 0 || i == 1)
+        if (i == 0 || i == 1 || i == 6)
         {
             negPosX *= -1;
         }
         
-        if (i == 0 || i == 3)
+        if (i == 0 || i == 3 || i == 4)
         {
             negPosY *= -1;
+        }
+        
+        if (i == 4 || i == 5)
+        {
+            negPosX = 0;
+        }
+        
+        if (i == 6 || i == 7)
+        {
+            negPosY = 0;
         }
         
         lastPredX[i] = predX[i] = negPosX * 100.0;//150.0;//(double)(randDouble * gridX * 2.0) - gridX;
