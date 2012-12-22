@@ -128,8 +128,21 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         clonePredator->inherit(predatorAgent, 0.0, 0);
         clonePredator->setupPhenotype();
         clonePredator->fitness = 1.0;
-        lastPredX[i] = predX[i] = (double)(randDouble * gridX * 2.0) - gridX;
-        lastPredY[i] = predY[i] = (double)(randDouble * gridY * 2.0) - gridY;
+        
+        int negPosX = 1, negPosY = 1;
+        
+        if (i == 0 || i == 1)
+        {
+            negPosX *= -1;
+        }
+        
+        if (i == 0 || i == 3)
+        {
+            negPosY *= -1;
+        }
+        
+        lastPredX[i] = predX[i] = negPosX * 100.0;//150.0;//(double)(randDouble * gridX * 2.0) - gridX;
+        lastPredY[i] = predY[i] = negPosY * 100.0;//150.0;//(double)(randDouble * gridY * 2.0) - gridY;
         predA[i] = (int)(randDouble * 360.0);
         delay[i] = 0;
         predatorAgents.push_back(clonePredator);
@@ -724,7 +737,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
     return reportString;
 }
 
-// wraps a position around a preset boundary (toroidal world)
+/*// wraps a position around a preset boundary (toroidal world)
 void tGame::applyBoundary(double& positionVal)
 {
     double val = positionVal;
@@ -742,9 +755,9 @@ void tGame::applyBoundary(double& positionVal)
     }
     
     positionVal = val;
-}
+}*/
 
-/*// maintains a position within a preset boundary
+// maintains a position within a preset boundary
  void tGame::applyBoundary(double& positionVal)
  {
      double val = positionVal;
@@ -762,9 +775,9 @@ void tGame::applyBoundary(double& positionVal)
      }
      
      positionVal = val;
- }*/
+ }
 
-// calculates the distance^2 between two points (toroidal world)
+/*// calculates the distance^2 between two points (toroidal world)
 double tGame::calcDistanceSquared(double fromX, double fromY, double toX, double toY)
 {
     double diffX = fabs(fromX - toX);
@@ -781,16 +794,16 @@ double tGame::calcDistanceSquared(double fromX, double fromY, double toX, double
     }
     
     return ( diffX * diffX ) + ( diffY * diffY );
-}
+}*/
 
-/*// calculates the distance^2 between two points
+// calculates the distance^2 between two points
 double tGame::calcDistanceSquared(double fromX, double fromY, double toX, double toY)
 {
     double diffX = fromX - toX;
     double diffY = fromY - toY;
     
     return ( diffX * diffX ) + ( diffY * diffY );
-}*/
+}
 
 // calculates the angle between two agents
 double tGame::calcAngle(double fromX, double fromY, double fromAngle, double toX, double toY)

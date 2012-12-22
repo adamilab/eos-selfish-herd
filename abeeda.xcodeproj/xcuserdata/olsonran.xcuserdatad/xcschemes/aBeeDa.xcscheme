@@ -56,11 +56,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-dd /Users/olsonran/Desktop/Dropbox/Private/notebooks/selfish-herd/swarm-sd30-selfish-herd-fixed-starting-pos-np4/ -sd 30 -np 4"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-e lod.csv swarm.genome predator.genome -g 1200 -sd 30 -np 2"
-            isEnabled = "NO">
+            argument = "-e lod.csv swarm.genome predator.genome -g 1200 -sd 30 -np 4 -v 25 -kd 10"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-dfp startPredator.genome startPredator.dot"
