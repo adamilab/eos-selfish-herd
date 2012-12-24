@@ -665,13 +665,13 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             bool collisionHappened = false;
             
             // collision with predator?
-            for (int predIndex = 0; !collisionHappened && predIndex < numPredators; ++predIndex)
+            /*for (int predIndex = 0; !collisionHappened && predIndex < numPredators; ++predIndex)
             {
                 if (i != predIndex && predToPredDists[i][predIndex] < collisionDist)
                 {
                     collisionHappened = true;
                 }
-            }
+            }*/
             
             // collision with prey?
             for (int preyIndex = 0; !collisionHappened && preyIndex < swarmSize; ++preyIndex)
