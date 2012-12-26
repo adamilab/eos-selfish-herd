@@ -72,6 +72,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
     vector<double> bbSizes;
     vector<double> shortestDists;
     vector<double> swarmDensityCounts;
+    bool swarmer[swarmSize];
     
     // swarm agent x, y, angles, alive status
     double preyX[swarmSize], preyY[swarmSize], preyA[swarmSize];
@@ -116,6 +117,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         lastPreyY[i] = preyY[i];
         preyA[i] = (int)(randDouble * 360.0);
         preyDead[i] = false;
+        swarmer[i] = false;
     }
     
     // group of clonal predators
@@ -311,6 +313,20 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             
             swarmDensityCounts.push_back(avgWithin);
             
+            
+            if (step > 50)
+            {
+                for (int swarmIndex = 0; swarmIndex < swarmSize; ++swarmIndex)
+                {
+                    if (!swarmer[swarmIndex])
+                    {
+                        if (calcAngle(preyX[swarmIndex], preyY[swarmIndex], preyA[swarmIndex], 0.0, 0.0) < 90.0)
+                        {
+                            swarmer[swarmIndex] = true;
+                        }
+                    }
+                }
+            }
         }
         /*       END OF DATA GATHERING       */
         
@@ -714,13 +730,18 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
     if (data_file != NULL)
     {
         double avgSwarmFitness = 0.0;
+        int numSwarmers = 0;
         
         for (int i = 0; i < swarmSize; ++i)
         {
             avgSwarmFitness += swarmAgents[i]->fitness / (double)swarmSize;
+            if (swarmer[i])
+            {
+                ++numSwarmers;
+            }
         }
         
-        fprintf(data_file, "%d,%f,%f,%d,%f,%f,%f,%f,%i,%i,%i,%i\n",
+        fprintf(data_file, "%d,%f,%f,%d,%f,%f,%f,%f,%i,%i,%i,%i,%i,%i\n",
                 swarmAgents[0]->born,                           // update born (prey)
                 avgSwarmFitness,                                // swarm fitness
                 predatorAgent->fitness,                         // predator fitness
@@ -732,7 +753,9 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                 neuronsConnectedToPreyRetina(swarmAgents[0]),       // # neurons connected to prey part of retina (prey)
                 neuronsConnectedToPredatorRetina(swarmAgents[0]),   // # neurons connected to predator part of retina (prey)
                 neuronsConnectedToPreyRetina(predatorAgents[0]),    // # neurons connected to prey part of retina (predator)
-                numAttacks
+                numAttacks,
+                numSwarmers,
+                (swarmSize - numSwarmers)
                 );
     }
     
