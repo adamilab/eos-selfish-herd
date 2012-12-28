@@ -39,6 +39,7 @@
 #define gridYAcross 2.0 * gridY
 #define collisionDist 5.0 * 5.0
 #define boundaryDist 250.0
+#define minNumAlive 25
 
 // precalculated lookup tables for the game
 double cosLookup[360];
@@ -104,14 +105,16 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
     string reportString = "";
     
     // set up brains for swarm
+    predatorAgent->fitness = 1.0;
+    
     for (int i = 0; i < swarmSize; ++i)
     {
         swarmAgents[i]->setupPhenotype();
         swarmAgents[i]->fitness = 1.0;
         swarmAgents[i]->resetBrain();
 
-        preyX[i] = 0.0;//(double)(randDouble * gridX) - gridX / 2.0;//(double)(randDouble * gridX * 2.0) - gridX;
-        preyY[i] = 0.0;//(double)(randDouble * gridY) - gridY / 2.0;//(double)(randDouble * gridY * 2.0) - gridY;
+        preyX[i] = 0.0 * ((double)(randDouble * gridX * 2.0) - gridX);
+        preyY[i] = 0.0 * ((double)(randDouble * gridY * 2.0) - gridY);
         
         lastPreyX[i] = preyX[i];
         lastPreyY[i] = preyY[i];
@@ -381,8 +384,13 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             // activate the predator agent's brain
             predatorAgents[predIndex]->updateStates();
             
-            //                                      node 31                                              node 30
-            int action = ((predatorAgents[predIndex]->states[(maxNodes - 1)] & 1) << 1) + (predatorAgents[predIndex]->states[(maxNodes - 2)] & 1);
+            int action = 0;
+            
+            if (numAlive > minNumAlive)
+            {
+                //                                      node 31                                              node 30
+                action = ((predatorAgents[predIndex]->states[(maxNodes - 1)] & 1) << 1) + (predatorAgents[predIndex]->states[(maxNodes - 2)] & 1);
+            }
             
             switch(action)
             {
@@ -439,8 +447,11 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             }
             
             // keep position within simulation boundary
-            applyBoundary(predX[predIndex]);
-            applyBoundary(predY[predIndex]);
+            if (numAlive > minNumAlive)
+            {
+                applyBoundary(predX[predIndex]);
+                applyBoundary(predY[predIndex]);
+            }
             
             // if the predator moved,
             if (predX[predIndex] != lastPredX[predIndex] && predY[predIndex] != lastPredY[predIndex])
@@ -460,53 +471,50 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
             }
             
             // determine if the predator made a kill
-            if (numAlive > 2)
+            if (numAlive > minNumAlive && delay[predIndex] < 1)
             {
-                if (delay[predIndex] < 1)
+                bool killed = false;
+                
+                for(int i = 0; !killed && i < swarmSize; ++i)
                 {
-                    bool killed = false;
-                    
-                    for(int i = 0; !killed && i < swarmSize; ++i)
+                    // victim prey must be within kill range
+                    if (!preyDead[i] && (predToPreyDists[predIndex][i] < collisionDist) && fabs(calcAngle(predX[predIndex], predY[predIndex], predA[predIndex], preyX[i], preyY[i])) < predatorVisionAngle)
                     {
-                        // victim prey must be within kill range
-                        if (!preyDead[i] && (predToPreyDists[predIndex][i] < collisionDist) && fabs(calcAngle(predX[predIndex], predY[predIndex], predA[predIndex], preyX[i], preyY[i])) < predatorVisionAngle)
-                        {
-                            ++numAttacks;
-                            
-                            /*int nearbyCount = 0;
-                             
-                             for (int j = 0; j < swarmSize; ++j)
-                             {
-                             // other prey must be close to victim prey
-                             if (i != j && !preyDead[j] && preyToPreyDists[i][j] < startingDist)
-                             {
-                             // other prey must be within predator's retina
-                             if (predToPreyDists[j] < predatorVisionRange && fabs(calcAngle(predX, predY, predA, preyX[j], preyY[j])) < predatorVisionAngle)
-                             {
-                             ++nearbyCount;
-                             }
-                             }
-                             }
-                             
-                             if (nearbyCount < 1 || randDouble < (1.0 / (double)(nearbyCount + 1.0)))
-                             {
-                             preyDead[i] = killed = true;
-                             --numAlive;
-                             }*/
-                            
-                            preyDead[i] = killed = true;
-                            --numAlive;
-                            
-                            // add a short delay in between kill attempts
-                            delay[predIndex] = killDelay;
-                            break;
-                        }
+                        ++numAttacks;
+                        
+                        /*int nearbyCount = 0;
+                         
+                         for (int j = 0; j < swarmSize; ++j)
+                         {
+                         // other prey must be close to victim prey
+                         if (i != j && !preyDead[j] && preyToPreyDists[i][j] < startingDist)
+                         {
+                         // other prey must be within predator's retina
+                         if (predToPreyDists[j] < predatorVisionRange && fabs(calcAngle(predX, predY, predA, preyX[j], preyY[j])) < predatorVisionAngle)
+                         {
+                         ++nearbyCount;
+                         }
+                         }
+                         }
+                         
+                         if (nearbyCount < 1 || randDouble < (1.0 / (double)(nearbyCount + 1.0)))
+                         {
+                         preyDead[i] = killed = true;
+                         --numAlive;
+                         }*/
+                        
+                        preyDead[i] = killed = true;
+                        --numAlive;
+                        
+                        // add a short delay in between kill attempts
+                        delay[predIndex] = killDelay;
+                        break;
                     }
                 }
-                else
-                {
-                    delay[predIndex] -= 1;
-                }
+            }
+            else
+            {
+                delay[predIndex] -= 1;
             }
         }
         
@@ -689,12 +697,16 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                 }
             }*/
             
-            // collision with prey?
-            for (int preyIndex = 0; !collisionHappened && preyIndex < swarmSize; ++preyIndex)
+            // collision only when there are prey left to kill
+            if (numAlive > minNumAlive)
             {
-                if (!preyDead[preyIndex] && predToPreyDists[i][preyIndex] < collisionDist)
+                // collision with prey?
+                for (int preyIndex = 0; !collisionHappened && preyIndex < swarmSize; ++preyIndex)
                 {
-                    collisionHappened = true;
+                    if (!preyDead[preyIndex] && predToPreyDists[i][preyIndex] < collisionDist)
+                    {
+                        collisionHappened = true;
+                    }
                 }
             }
             
