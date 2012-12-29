@@ -28,7 +28,7 @@
 #define cPI 3.14159265
 
 // simulation-specific constants
-#define preyVisionRange         100.0 * 100.0
+#define preyVisionRange         200.0 * 200.0
 #define preyVisionAngle         360.0 / 2.0
 #define preySensors             24
 #define totalStepsInSimulation  1000
@@ -279,7 +279,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
             if (!preyDead[i])
             {
                 //clear the sensors of agent i
-                for(int j = 0; j < preySensors + 4; ++j)
+                for(int j = 0; j < preySensors; ++j)
                 {
                     swarmAgents[i]->states[j] = 0;
                 }
@@ -310,14 +310,6 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                     }
                 }
                 
-                // indicate presence of center of swarm in agent i's retina
-                double angle = calcAngle(preyX[i], preyY[i], preyA[i], cX, cY);
-                
-                if(fabs(angle) < preyVisionAngle)
-                {
-                    swarmAgents[i]->states[(int)(angle / (preyVisionAngle / ((double)4.0 / 2.0)) + ((double)4.0 / 2.0))] = 1;
-                }
-                
                 // activate the swarm agent's brain
                 swarmAgents[i]->updateStates();
             }
@@ -338,8 +330,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                         lastPreyX[i] = preyX[i];
                         lastPreyY[i] = preyY[i];
                         
-                        preyX[i] += cosLookup[(int)preyA[i]];
-                        preyY[i] += sinLookup[(int)preyA[i]];
+                        preyX[i] += cosLookup[(int)preyA[i]] * 2.0;
+                        preyY[i] += sinLookup[(int)preyA[i]] * 2.0;
                         
                         break;
                         
@@ -355,8 +347,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                         lastPreyX[i] = preyX[i];
                         lastPreyY[i] = preyY[i];
                         
-                        preyX[i] += cosLookup[(int)preyA[i]];
-                        preyY[i] += sinLookup[(int)preyA[i]];
+                        preyX[i] += cosLookup[(int)preyA[i]] * 2.0;
+                        preyY[i] += sinLookup[(int)preyA[i]] * 2.0;
                         
                         break;
                         
@@ -371,8 +363,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                         lastPreyX[i] = preyX[i];
                         lastPreyY[i] = preyY[i];
                         
-                        preyX[i] += cosLookup[(int)preyA[i]];
-                        preyY[i] += sinLookup[(int)preyA[i]];
+                        preyX[i] += cosLookup[(int)preyA[i]] * 2.0;
+                        preyY[i] += sinLookup[(int)preyA[i]] * 2.0;
                         
                         break;
                         
@@ -401,7 +393,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         
         /*       APPLY PREDATION / "DEATH RAY"       */
         
-        if (step > 200)
+        if (step > 200 && !report)
         {
             if (delay < 1)
             {
@@ -444,7 +436,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         /*       COLLISION DETECTION       */
         
         // check if any prey collided with another prey
-        for (int i = 0; i < swarmSize; ++i)
+        /*for (int i = 0; i < swarmSize; ++i)
         {
             bool collisionHappened = false;
             
@@ -469,8 +461,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                     recalcPreyDistTableForOnePrey(preyX, preyY, preyDead, preyToPreyDists, i);
                 }
             }
-        }
-
+        }*/
         
         /*       END COLLISION DETECTION       */
         
