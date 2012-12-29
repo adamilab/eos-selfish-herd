@@ -476,7 +476,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
     // output to data file, if provided
     if (data_file != NULL)
     {
-        fprintf(data_file, "%i,%f,%f,%f,%f,%f,%i\n",
+        fprintf(data_file, "%i,%f,%f,%f,%f,%i\n",
                 swarmAgents[0]->born,                           // update born (prey)
                 average(bbSizes),                               // average bounding box size
                 variance(bbSizes),                              // variance in bounding box size
