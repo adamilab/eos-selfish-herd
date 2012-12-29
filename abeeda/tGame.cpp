@@ -476,16 +476,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
     // output to data file, if provided
     if (data_file != NULL)
     {
-        double avgSwarmFitness = 0.0;
-        
-        for (int i = 0; i < swarmSize; ++i)
-        {
-            avgSwarmFitness += swarmAgents[i]->fitness / (double)swarmSize;
-        }
-        
         fprintf(data_file, "%i,%f,%f,%f,%f,%f,%i\n",
                 swarmAgents[0]->born,                           // update born (prey)
-                avgSwarmFitness,                                // swarm fitness
                 average(bbSizes),                               // average bounding box size
                 variance(bbSizes),                              // variance in bounding box size
                 average(shortestDists),                         // average of avg. shortest distance to other swarm agent
