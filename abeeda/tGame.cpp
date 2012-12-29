@@ -390,16 +390,16 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         
         /*       APPLY PREDATION / "DEATH RAY"       */
         
-        if (step > 200 && !report)
+        if (step > 250)// && !report)
         {
-            if (delay < 1)
+            if (delay <= 1)
             {
                 // choose random angle to attack from
                 int angleOfAttack = (int)(randDouble * 360.0);
                 
                 // convert angle into attack vector
-                double attackX = cosLookup[angleOfAttack] * (gridX + 50.0);
-                double attackY = sinLookup[angleOfAttack] * (gridY + 50.0);
+                double attackX = cosLookup[angleOfAttack] * gridX;
+                double attackY = sinLookup[angleOfAttack] * gridY;
                 
                 // find the prey closest to the attack vector
                 double closestDist = DBL_MAX;
