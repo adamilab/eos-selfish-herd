@@ -390,7 +390,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         
         /*       APPLY PREDATION / "DEATH RAY"       */
         
-        if (step > 250)// && !report)
+        if (step > 250 && !report)
         {
             if (delay <= 1)
             {
