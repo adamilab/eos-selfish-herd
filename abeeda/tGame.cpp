@@ -508,11 +508,11 @@ void tGame::applyBoundary(double& positionVal)
     {
         if (val < 0)
         {
-            val = boundaryDist;
+            val = boundaryDist - 10;
         }
         else
         {
-            val = -1.0 * boundaryDist;
+            val = -boundaryDist + 10;
         }
     }
     
