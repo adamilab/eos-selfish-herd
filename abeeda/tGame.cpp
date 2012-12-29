@@ -38,6 +38,7 @@
 #define gridYAcross             2.0 * gridY
 #define collisionDist           5.0 * 5.0
 #define boundaryDist            gridX - sqrt(collisionDist)
+#define stepsUntilPredation     250
 
 // precalculated lookup tables for the game
 double cosLookup[360];
@@ -390,7 +391,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         
         /*       APPLY PREDATION / "DEATH RAY"       */
         
-        if (step > 250 && !report)
+        if (step > stepsUntilPredation && !report)
         {
             if (delay <= 1)
             {
