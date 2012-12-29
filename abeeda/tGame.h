@@ -77,7 +77,6 @@ public:
     double computeOldR(vector<vector<int> > table);
     double entropy(vector<int> list);
     int neuronsConnectedToPreyRetina(tAgent *agent);
-    int neuronsConnectedToPredatorRetina(tAgent* agent);
 
 };
 #endif

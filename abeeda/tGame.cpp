@@ -483,16 +483,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
             avgSwarmFitness += swarmAgents[i]->fitness / (double)swarmSize;
         }
         
-        fprintf(data_file, "%d,%f,%d,%f,%f,%f,%f,%i,%i\n",
+        fprintf(data_file, "%i,%f,%f,%f,%f,%f,%i\n",
                 swarmAgents[0]->born,                           // update born (prey)
                 avgSwarmFitness,                                // swarm fitness
-                numAlive,                                       // # alive at end
                 average(bbSizes),                               // average bounding box size
                 variance(bbSizes),                              // variance in bounding box size
                 average(shortestDists),                         // average of avg. shortest distance to other swarm agent
                 average(swarmDensityCounts),                    // average # of agents within 20 units of each other
-                neuronsConnectedToPreyRetina(swarmAgents[0]),       // # neurons connected to prey part of retina (prey)
-                neuronsConnectedToPredatorRetina(swarmAgents[0])   // # neurons connected to predator part of retina (prey)
+                neuronsConnectedToPreyRetina(swarmAgents[0])    // # neurons connected to prey part of retina (prey)
                 );
     }
     
@@ -849,20 +847,6 @@ int tGame::neuronsConnectedToPreyRetina(tAgent *agent){
                 c++;
     delete A;
     return c;
-}
-
-int tGame::neuronsConnectedToPredatorRetina(tAgent* agent){
-    tAgent *A=new tAgent;
-    int i,j,c=0;
-    A->genome=agent->genome;
-    A->setupPhenotype();
-    for(i=0;i<A->hmmus.size();i++)
-        for(j=0;j<A->hmmus[i]->ins.size();j++)
-            if((A->hmmus[i]->ins[j]<(preySensors*2))&&(A->hmmus[i]->ins[j]>=preySensors))
-                c++;
-    delete A;
-    return c;
-    
 }
 
 //** tOctuplet implementation
