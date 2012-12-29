@@ -52,7 +52,7 @@ class tGame{
 public:
     tExperiment theExperiment;
     void loadExperiment(char *filename);
-    string executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool report, double startingDist, int killDelay);
+    string executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool report, bool collision, double startingDist, int killDelay);
     tGame();
     ~tGame();
     void applyBoundary(double& positionVal);

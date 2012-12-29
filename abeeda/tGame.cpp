@@ -65,7 +65,7 @@ tGame::tGame()
 tGame::~tGame() { }
 
 // runs the simulation for the given agent(s)
-string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool report, double startingDist, int killDelay)
+string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool report, bool collision, double startingDist, int killDelay)
 {
     // LOD data variables
     vector<double> bbSizes;
@@ -436,32 +436,35 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         /*       COLLISION DETECTION       */
         
         // check if any prey collided with another prey
-        /*for (int i = 0; i < swarmSize; ++i)
+        if (collision)
         {
-            bool collisionHappened = false;
-            
-            if (!preyDead[i])
+            for (int i = 0; i < swarmSize; ++i)
             {
-                for (int j = 0; !collisionHappened && j < swarmSize; ++j)
+                bool collisionHappened = false;
+                
+                if (!preyDead[i])
                 {
-                    // collision with other prey?
-                    if (i != j && !preyDead[j] && preyToPreyDists[i][j] < collisionDist)
+                    for (int j = 0; !collisionHappened && j < swarmSize; ++j)
                     {
-                        collisionHappened = true;
+                        // collision with other prey?
+                        if (i != j && !preyDead[j] && preyToPreyDists[i][j] < collisionDist)
+                        {
+                            collisionHappened = true;
+                        }
+                    }
+                    
+                    if (collisionHappened)
+                    {
+                        // reset prey back to its position before the collision
+                        preyX[i] = lastPreyX[i];
+                        preyY[i] = lastPreyY[i];
+                        
+                        // update the lookup table entry for the affected prey
+                        recalcPreyDistTableForOnePrey(preyX, preyY, preyDead, preyToPreyDists, i);
                     }
                 }
-                
-                if (collisionHappened)
-                {
-                    // reset prey back to its position before the collision
-                    preyX[i] = lastPreyX[i];
-                    preyY[i] = lastPreyY[i];
-                    
-                    // update the lookup table entry for the affected prey
-                    recalcPreyDistTableForOnePrey(preyX, preyY, preyDead, preyToPreyDists, i);
-                }
             }
-        }*/
+        }
         
         /*       END COLLISION DETECTION       */
         

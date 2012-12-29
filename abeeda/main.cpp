@@ -78,6 +78,7 @@ bool    display_only                = false;
 bool    display_directory           = false;
 bool    make_logic_table            = false;
 bool    make_dot                    = false;
+bool    collision                   = false;
 double  startingDist                = 30.0 * 30.0;
 int     killDelay                   = 10;
 
@@ -229,6 +230,14 @@ int main(int argc, char *argv[])
             ++i;
             
             killDelay = atoi(argv[i]);
+        }
+        
+        // -c [int]: set whether collision detection is active (default: off)
+        else if (strcmp(argv[i], "-c") == 0)
+        {
+            ++i;
+            
+            collision = true;
         }
     }
     
@@ -400,7 +409,7 @@ int main(int argc, char *argv[])
         double swarmAvgFitness = 0.0;
         
         // evaluate entire swarm population
-        game->executeGame(swarmAgents, NULL, false, startingDist, killDelay);
+        game->executeGame(swarmAgents, NULL, false, collision, startingDist, killDelay);
         
         // compute fitness statistics for swarm
         for (int i = 0; i < swarmSize; ++i)
@@ -424,7 +433,7 @@ int main(int argc, char *argv[])
             
             if (update % make_video_frequency == 0 || finalGeneration)
             {
-                string bestString = game->executeGame(swarmAgents, NULL, true, startingDist, killDelay);
+                string bestString = game->executeGame(swarmAgents, NULL, true, collision, startingDist, killDelay);
                 
                 if (finalGeneration)
                 {
@@ -519,7 +528,7 @@ int main(int argc, char *argv[])
             cloneSwarm.push_back(cloneAgent);
         }
         
-        game->executeGame(cloneSwarm, LOD, false, startingDist, killDelay);
+        game->executeGame(cloneSwarm, LOD, false, collision, startingDist, killDelay);
         
         // make video
         if (make_LOD_video)
@@ -554,7 +563,7 @@ string findBestRun(vector<tAgent*> swarmAgents)
     
     for (int rep = 0; rep < 100; ++rep)
     {
-        reportString = game->executeGame(swarmAgents, NULL, true, startingDist, killDelay);
+        reportString = game->executeGame(swarmAgents, NULL, true, collision, startingDist, killDelay);
         
         double swarmFitness = 0.0;
         
