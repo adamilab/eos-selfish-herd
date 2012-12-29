@@ -134,14 +134,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         /*       CREATE THE REPORT STRING FOR THE VIDEO       */
         if(report)
         {            
-            // compute center of swarm
+            /*// compute center of swarm
             double cX = 0.0, cY = 0.0;
             calcSwarmCenter(preyX, preyY, preyDead, cX, cY);
             
             // report X, Y of center of swarm
             char text2[1000];
             sprintf(text2,"%f,%f,%f,%d,%d,%d=", cX, cY, 0.0, 124, 252, 0);
-            reportString.append(text2);
+            reportString.append(text2);*/
             
             // report X, Y, angle of all prey
             for(int i = 0; i < swarmSize; ++i)
