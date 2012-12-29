@@ -71,7 +71,6 @@ tGame   *game                       = NULL;
 
 bool    make_interval_video         = false;
 int     make_video_frequency        = 25;
-bool    make_LOD_video              = false;
 bool    track_best_brains           = false;
 int     track_best_brains_frequency = 25;
 bool    display_only                = false;
@@ -182,12 +181,6 @@ int main(int argc, char *argv[])
             }
         }
         
-        // -lv: make video of LOD of best agent brain at the end
-        else if (strcmp(argv[i], "-lv") == 0)
-        {
-            make_LOD_video = true;
-        }
-        
         // -lt [in file name] [out file name]: create logic table for given genome
         else if (strcmp(argv[i], "-lt") == 0 && (i + 2) < argc)
         {
@@ -244,7 +237,7 @@ int main(int argc, char *argv[])
     // initial population setup
     swarmAgents.resize(populationSize);
     
-    if (display_only || display_directory || make_interval_video || make_LOD_video)
+    if (display_only || display_directory || make_interval_video)
     {
         // start monitor first, then abeeda
         setupBroadcast();
@@ -394,6 +387,10 @@ int main(int argc, char *argv[])
 	cout << "setup complete" << endl;
     cout << "starting evolution" << endl;
     
+    FILE *LOD = fopen(LODFileName.c_str(), "w");
+    
+    fprintf(LOD, "generation,avg_bb_size,var_bb_size,avg_shortest_dist,swarm_density_count,prey_neurons_connected_prey_retina\n");
+    
     // main loop
 	for (int update = 1; update <= totalGenerations; ++update)
     {
@@ -409,7 +406,7 @@ int main(int argc, char *argv[])
         double swarmAvgFitness = 0.0;
         
         // evaluate entire swarm population
-        game->executeGame(swarmAgents, NULL, false, collision, startingDist, killDelay);
+        game->executeGame(swarmAgents, LOD, false, collision, startingDist, killDelay);
         
         // compute fitness statistics for swarm
         for (int i = 0; i < swarmSize; ++i)
@@ -489,67 +486,6 @@ int main(int argc, char *argv[])
 	
     // save the genome file of the lmrca
 	swarmAgents[0]->ancestor->ancestor->saveGenome(swarmGenomeFileName.c_str());
-    
-    // save video and quantitative stats on the best swarm agent's LOD
-    vector<tAgent*> swarmLOD;
-    
-    cout << "building ancestor list" << endl;
-    
-    // swarm agents LOD
-    // use 2 ancestors down from current population because that ancestor is highly likely to have high fitness
-    tAgent* curAncestor = swarmAgents[0]->ancestor->ancestor;
-    
-    while (curAncestor != NULL)
-    {
-        // don't add the base ancestor
-        if (curAncestor->ancestor != NULL)
-        {
-            swarmLOD.insert(swarmLOD.begin(), curAncestor);
-        }
-        
-        curAncestor = curAncestor->ancestor;
-    }
-    
-    FILE *LOD = fopen(LODFileName.c_str(), "w");
-
-    fprintf(LOD, "generation,avg_bb_size,var_bb_size,avg_shortest_dist,swarm_density_count,prey_neurons_connected_prey_retina\n");
-    
-    cout << "analyzing ancestor list" << endl;
-    
-    for (int i = 0; i < swarmLOD.size(); ++i)
-    {
-        // collect quantitative stats
-        vector<tAgent*> cloneSwarm;
-        
-        for (int j = 0; j < swarmSize; ++j)
-        {
-            tAgent *cloneAgent = new tAgent;
-            cloneAgent->inherit(swarmLOD[i], 0.0, swarmLOD[i]->born);
-            cloneSwarm.push_back(cloneAgent);
-        }
-        
-        game->executeGame(cloneSwarm, LOD, false, collision, startingDist, killDelay);
-        
-        // make video
-        if (make_LOD_video)
-        {
-            string bestString = findBestRun(cloneSwarm);
-            
-            if ( (i + 1) == swarmLOD.size() )
-            {
-                bestString.append("X");
-            }
-            
-            doBroadcast(bestString);
-        }
-        
-        for (int j = 0; j < swarmSize; ++j)
-        {
-            delete cloneSwarm[j];
-        }
-        
-        cloneSwarm.clear();
-    }
     
     fclose(LOD);
     
