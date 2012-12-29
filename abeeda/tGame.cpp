@@ -31,7 +31,7 @@
 #define preyVisionRange 100.0 * 100.0
 #define preyVisionAngle 360.0 / 2.0
 #define preySensors 24
-#define totalStepsInSimulation 2000
+#define totalStepsInSimulation 1000
 #define gridX 256.0
 #define gridY 256.0
 #define gridXAcross 2.0 * gridX
@@ -83,6 +83,9 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
     // counter of how many swarm agents are still alive
     int numAlive = swarmSize;
     
+    // delay in between each kill
+    int delay = 0;
+    
     // string containing the information to create a video of the simulation
     string reportString = "";
     
@@ -99,8 +102,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         {
             goodPos = true;
             
-            preyX[i] = 0.5 * ((double)(randDouble * gridX * 2.0) - gridX);
-            preyY[i] = 0.5 * ((double)(randDouble * gridY * 2.0) - gridY);
+            preyX[i] = 0.75 * ((double)(randDouble * gridX * 2.0) - gridX);
+            preyY[i] = 0.75 * ((double)(randDouble * gridY * 2.0) - gridY);
             
             // make sure prey don't start too close together
             for (int j = 0; j < i; ++j)
@@ -132,13 +135,13 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         if(report)
         {            
             // compute center of swarm
-            /*double cX = 0.0, cY = 0.0;
-            calcSwarmCenter(preyX,preyY, preyDead, cX, cY);
+            double cX = 0.0, cY = 0.0;
+            calcSwarmCenter(preyX, preyY, preyDead, cX, cY);
             
             // report X, Y of center of swarm
             char text2[1000];
             sprintf(text2,"%f,%f,%f,%d,%d,%d=", cX, cY, 0.0, 124, 252, 0);
-            reportString.append(text2);*/
+            reportString.append(text2);
             
             // report X, Y, angle of all prey
             for(int i = 0; i < swarmSize; ++i)
@@ -148,6 +151,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                     char text[1000];
                     
                     sprintf(text,"%f,%f,%f,%d,%d,%d=", preyX[i], preyY[i], preyA[i], 255, 255, 255);
+                    
+                    reportString.append(text);
+                }
+                else
+                {
+                    char text[1000];
+                    
+                    sprintf(text,"%f,%f,%f,%d,%d,%d=", preyX[i], preyY[i], preyA[i], 255, 0, 0);
                     
                     reportString.append(text);
                 }
@@ -314,8 +325,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                         lastPreyX[i] = preyX[i];
                         lastPreyY[i] = preyY[i];
                         
-                        preyX[i] += cosLookup[(int)preyA[i]] * 0.75;
-                        preyY[i] += sinLookup[(int)preyA[i]] * 0.75;
+                        preyX[i] += cosLookup[(int)preyA[i]];
+                        preyY[i] += sinLookup[(int)preyA[i]];
                         
                         break;
                         
@@ -331,8 +342,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                         lastPreyX[i] = preyX[i];
                         lastPreyY[i] = preyY[i];
                         
-                        preyX[i] += cosLookup[(int)preyA[i]] * 0.75;
-                        preyY[i] += sinLookup[(int)preyA[i]] * 0.75;
+                        preyX[i] += cosLookup[(int)preyA[i]];
+                        preyY[i] += sinLookup[(int)preyA[i]];
                         
                         break;
                         
@@ -347,8 +358,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                         lastPreyX[i] = preyX[i];
                         lastPreyY[i] = preyY[i];
                         
-                        preyX[i] += cosLookup[(int)preyA[i]] * 0.75;
-                        preyY[i] += sinLookup[(int)preyA[i]] * 0.75;
+                        preyX[i] += cosLookup[(int)preyA[i]];
+                        preyY[i] += sinLookup[(int)preyA[i]];
                         
                         break;
                         
@@ -373,6 +384,49 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         recalcPreyDistTable(preyX, preyY, preyDead, preyToPreyDists);
         
         /*       END OF SWARM UPDATE       */
+        
+        
+        /*       APPLY PREDATION / "DEATH RAY"       */
+        
+        if (step > 200)
+        {
+            if (delay < 1)
+            {
+                // compute center of swarm
+                double cX = 0.0, cY = 0.0;
+                calcSwarmCenter(preyX, preyY, preyDead, cX, cY);
+                
+                // find prey furthest from swarm center
+                double furthestDist = 0.0;
+                int furthestIndex = 0;
+                
+                for (int i = 0; i < swarmSize; ++i)
+                {
+                    if (!preyDead[i])
+                    {
+                        double curPreyDist = calcDistanceSquared(preyX[i], preyY[i], cX, cY);
+                        
+                        if (curPreyDist > furthestDist)
+                        {
+                            furthestDist = curPreyDist;
+                            furthestIndex = i;
+                        }
+                    }
+                }
+                
+                // kill the prey that is furthest from the swarm center
+                preyDead[furthestIndex] = true;
+                delay = killDelay;
+            }
+            
+            else
+            {
+                --delay;
+            }
+        }
+        
+        /*       END APPLY PREDATION / "DEATH RAY"       */
+        
         
         /*       COLLISION DETECTION       */
         

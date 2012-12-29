@@ -389,7 +389,7 @@ int main(int argc, char *argv[])
 	for (int update = 1; update <= totalGenerations; ++update)
     {
         // reset fitnesses
-		for(int i = 0; i < populationSize; ++i)
+		for (int i = 0; i < populationSize; ++i)
         {
 			swarmAgents[i]->fitness = 0.0;
 			//swarmAgents[i]->fitnesses.clear();
@@ -402,14 +402,20 @@ int main(int argc, char *argv[])
         // evaluate entire swarm population
         game->executeGame(swarmAgents, NULL, false, startingDist, killDelay);
         
+        // compute fitness statistics for swarm
         for (int i = 0; i < swarmSize; ++i)
         {
             swarmAvgFitness += swarmAgents[i]->fitness;
+            
+            if (swarmAgents[i]->fitness > swarmMaxFitness)
+            {
+                swarmMaxFitness = swarmAgents[i]->fitness;
+            }
         }
         
         swarmAvgFitness /= (double)populationSize;
 		
-		cout << "generation " << update << ": swarm [" << (int)swarmAvgFitness << " : " << (int)swarmMaxFitness << "]" << endl;
+		cout << "generation " << update << endl;//": swarm [" << (int)swarmAvgFitness << " : " << (int)swarmMaxFitness << "]" << endl;
         
         // display video of simulation
         if (make_interval_video)

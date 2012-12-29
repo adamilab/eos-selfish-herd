@@ -1,7 +1,7 @@
 import processing.video.*;
 
 // the following parameters must fit the c++ code:
-int totalNrOfUpdates=1999;
+int totalNrOfUpdates=999;
 
 MovieMaker mm;
 
@@ -35,7 +35,7 @@ void drawArea(){
      if (showLegend && currentStep < 200)
      {      
        fill(255, 255, 255);
-       text("White - prey", 10, 65);
+       text("White - prey", 10, 40);
      }
      
      if (showLegend && currentStep > 150)
