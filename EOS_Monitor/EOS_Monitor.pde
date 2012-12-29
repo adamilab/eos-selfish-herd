@@ -145,7 +145,7 @@ void updateArea(){
 
 void setup()
 {
-  size(512,512);
+  size(768,768);
   f = createFont("Calibri", 20, false);
   textFont(f);
   textAlign(LEFT);

@@ -28,16 +28,16 @@
 #define cPI 3.14159265
 
 // simulation-specific constants
-#define preyVisionRange 100.0 * 100.0
-#define preyVisionAngle 360.0 / 2.0
-#define preySensors 24
-#define totalStepsInSimulation 1000
-#define gridX 256.0
-#define gridY 256.0
-#define gridXAcross 2.0 * gridX
-#define gridYAcross 2.0 * gridY
-#define collisionDist 5.0 * 5.0
-#define boundaryDist 250.0
+#define preyVisionRange         100.0 * 100.0
+#define preyVisionAngle         360.0 / 2.0
+#define preySensors             24
+#define totalStepsInSimulation  1000
+#define gridX                   384.0
+#define gridY                   384.0
+#define gridXAcross             2.0 * gridX
+#define gridYAcross             2.0 * gridY
+#define collisionDist           5.0 * 5.0
+#define boundaryDist            gridX - sqrt(collisionDist)
 
 // precalculated lookup tables for the game
 double cosLookup[360];
@@ -102,8 +102,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         {
             goodPos = true;
             
-            preyX[i] = 0.75 * ((double)(randDouble * gridX * 2.0) - gridX);
-            preyY[i] = 0.75 * ((double)(randDouble * gridY * 2.0) - gridY);
+            preyX[i] = 0.95 * ((double)(randDouble * gridX * 2.0) - gridX);
+            preyY[i] = 0.95 * ((double)(randDouble * gridY * 2.0) - gridY);
             
             // make sure prey don't start too close together
             for (int j = 0; j < i; ++j)
@@ -154,14 +154,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                     
                     reportString.append(text);
                 }
-                else
+                /*else
                 {
                     char text[1000];
                     
                     sprintf(text,"%f,%f,%f,%d,%d,%d=", preyX[i], preyY[i], preyA[i], 255, 0, 0);
                     
                     reportString.append(text);
-                }
+                }*/
             }
             reportString.append("N");
             
@@ -269,12 +269,17 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         
         
         /*       UPDATE SWARM       */
+        
+        // compute center of swarm
+        double cX = 0.0, cY = 0.0;
+        calcSwarmCenter(preyX, preyY, preyDead, cX, cY);
+        
         for(int i = 0; i < swarmSize; ++i)
         {
             if (!preyDead[i])
             {
                 //clear the sensors of agent i
-                for(int j = 0; j < preySensors; ++j)
+                for(int j = 0; j < preySensors + 4; ++j)
                 {
                     swarmAgents[i]->states[j] = 0;
                 }
@@ -303,6 +308,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                             }
                         }
                     }
+                }
+                
+                // indicate presence of center of swarm in agent i's retina
+                double angle = calcAngle(preyX[i], preyY[i], preyA[i], cX, cY);
+                
+                if(fabs(angle) < preyVisionAngle)
+                {
+                    swarmAgents[i]->states[(int)(angle / (preyVisionAngle / ((double)4.0 / 2.0)) + ((double)4.0 / 2.0))] = 1;
                 }
                 
                 // activate the swarm agent's brain
@@ -431,7 +444,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         /*       COLLISION DETECTION       */
         
         // check if any prey collided with another prey
-        /*for (int i = 0; i < swarmSize; ++i)
+        for (int i = 0; i < swarmSize; ++i)
         {
             bool collisionHappened = false;
             
@@ -453,10 +466,10 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                     preyY[i] = lastPreyY[i];
                     
                     // update the lookup table entry for the affected prey
-                    recalcPredAndPreyDistTableForOnePrey(preyX, preyY, preyDead, preyToPreyDists, i);
+                    recalcPreyDistTableForOnePrey(preyX, preyY, preyDead, preyToPreyDists, i);
                 }
             }
-        }*/
+        }
 
         
         /*       END COLLISION DETECTION       */
