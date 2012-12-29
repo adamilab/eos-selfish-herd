@@ -34,8 +34,6 @@ tAgent::tAgent(){
 		newStates[i]=0;
 	}
 	bestSteps=-1;
-	ID=masterID;
-	masterID++;
 	saved=false;
 	hmmus.clear();
 	nrOfOffspring=0;

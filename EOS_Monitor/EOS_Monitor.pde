@@ -33,10 +33,7 @@ void drawArea(){
      background(0);
 
      if (showLegend && currentStep < 200)
-     {
-       fill(255, 0, 0);
-       text("Red - predator", 10, 40);
-      
+     {      
        fill(255, 255, 255);
        text("White - prey", 10, 65);
      }

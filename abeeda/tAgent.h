@@ -28,8 +28,6 @@
 
 using namespace std;
 
-static int masterID = 0;
-
 class tDot{
 public:
 	double xPos,yPos;
