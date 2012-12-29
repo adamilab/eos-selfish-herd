@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
     
     if (make_dot)
     {
-        swarmAgent->saveToDot(swarmDotFileName.c_str(), false);
+        swarmAgent->saveToDot(swarmDotFileName.c_str());
         exit(0);
     }
     
