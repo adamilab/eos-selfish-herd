@@ -34,8 +34,10 @@
 #define totalStepsInSimulation  1000
 #define gridX                   384.0
 #define gridY                   384.0
+#define gridZ                   384.0
 #define gridXAcross             2.0 * gridX
 #define gridYAcross             2.0 * gridY
+#define gridZAcross             2.0 * gridZ
 #define collisionDist           5.0 * 5.0
 #define boundaryDist            gridX - sqrt(collisionDist)
 #define stepsUntilPredation     250
@@ -74,8 +76,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
     vector<double> swarmDensityCounts;
     
     // swarm agent x, y, angles, alive status
-    double preyX[swarmSize], preyY[swarmSize], preyA[swarmSize];
-    double lastPreyX[swarmSize], lastPreyY[swarmSize];
+    double preyX[swarmSize], preyY[swarmSize], preyZ[swarmSize], preyA[swarmSize];
+    double lastPreyX[swarmSize], lastPreyY[swarmSize], lastPreyZ[swarmSize];
     bool preyDead[swarmSize];
     
     // lookup table for distances between swarm agents and other swarm agents
@@ -105,6 +107,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
             
             preyX[i] = 0.95 * ((double)(randDouble * gridX * 2.0) - gridX);
             preyY[i] = 0.95 * ((double)(randDouble * gridY * 2.0) - gridY);
+            preyZ[i] = 0.95 * ((double)(randDouble * gridZ * 2.0) - gridZ);
             
             // make sure prey don't start too close together
             for (int j = 0; j < i; ++j)
