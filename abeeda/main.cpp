@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
     fprintf(LOD, "generation,avg_bb_size,var_bb_size,avg_shortest_dist,swarm_density_count,prey_neurons_connected_prey_retina\n");
     
     // main loop
-	for (int update = 1; update <= totalGenerations; ++update)
+	for (int update = 2; update <= totalGenerations; ++update)
     {
         // reset fitnesses
 		for (int i = 0; i < populationSize; ++i)
@@ -407,6 +407,11 @@ int main(int argc, char *argv[])
         
         // evaluate entire swarm population
         game->executeGame(swarmAgents, LOD, false, collision, startingDist, killDelay);
+        
+        if (update % 10 == 0)
+        {
+            fflush(LOD);
+        }
         
         // compute fitness statistics for swarm
         for (int i = 0; i < swarmSize; ++i)

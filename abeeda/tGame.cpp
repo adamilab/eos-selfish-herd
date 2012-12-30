@@ -171,7 +171,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         
         
         /*       SAVE DATA FOR THE LOD FILE       */
-        if(data_file != NULL)
+        if (data_file != NULL)
         {
             // calculate bounding box size for this update
             // lu = Left Uppermost point
@@ -231,7 +231,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                     }
                     
                     // sum the shortest distance for agent i
-                    meanShortestDist += shortestDist;
+                    meanShortestDist += sqrt(shortestDist);
                 }
             }
             
@@ -244,7 +244,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
             // calculate swarm density count
             double avgWithin = 0.0;
             
-            for(int i = 0; i < swarmSize; ++i)
+            for (int i = 0; i < swarmSize; ++i)
             {
                 if (!preyDead[i])
                 {
@@ -393,7 +393,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         
         if (step > stepsUntilPredation && !report)
         {
-            if (delay <= 1)
+            if (delay <= 1 && numAlive > 2)
             {
                 // choose random angle to attack from
                 int angleOfAttack = (int)(randDouble * 360.0);
@@ -422,6 +422,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                 
                 // kill the prey closest to the attack vector
                 preyDead[closestIndex] = true;
+                --numAlive;
                 delay = killDelay;
             }
             
