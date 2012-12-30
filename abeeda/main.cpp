@@ -426,7 +426,7 @@ int main(int argc, char *argv[])
         
         swarmAvgFitness /= (double)populationSize;
 		
-		cout << "generation " << update << endl;//": swarm [" << (int)swarmAvgFitness << " : " << (int)swarmMaxFitness << "]" << endl;
+		cout << "generation " << update << ": swarm [" << (int)swarmAvgFitness << " : " << (int)swarmMaxFitness << "]" << endl;
         
         // display video of simulation
         if (make_interval_video)

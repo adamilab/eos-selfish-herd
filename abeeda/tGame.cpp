@@ -395,12 +395,9 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
         {
             if (delay <= 1 && numAlive > 2)
             {
-                // choose random angle to attack from
-                int angleOfAttack = (int)(randDouble * 360.0);
-                
                 // convert angle into attack vector
-                double attackX = cosLookup[angleOfAttack] * gridX;
-                double attackY = sinLookup[angleOfAttack] * gridY;
+                double attackX = ((double)(randDouble * gridX * 2.0) - gridX);
+                double attackY = ((double)(randDouble * gridY * 2.0) - gridY);
                 
                 // find the prey closest to the attack vector
                 double closestDist = DBL_MAX;
@@ -420,10 +417,25 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                     }
                 }
                 
+                // death probability dependent on local prey density
+                int nearbyCount = 0;
+                
+                for (int i = 0; i < swarmSize; ++i)
+                {
+                    // other prey must be close to target prey
+                    if (!preyDead[i] && preyToPreyDists[closestIndex][i] < startingDist)
+                    {
+                        ++nearbyCount;
+                    }
+                }
+                
                 // kill the prey closest to the attack vector
-                preyDead[closestIndex] = true;
-                --numAlive;
-                delay = killDelay;
+                if (randDouble < 1.0 / nearbyCount)
+                {
+                    preyDead[closestIndex] = true;
+                    --numAlive;
+                    delay = killDelay;
+                }
             }
             
             else
