@@ -379,7 +379,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                 applyBoundary(preyY[i]);
                 
                 // reward the swarm agent fitness for surviving another update
-                swarmAgents[i]->fitness += swarmSize;
+                swarmAgents[i]->fitness += 1;
             }
         }
         
