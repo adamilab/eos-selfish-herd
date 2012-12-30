@@ -43,7 +43,7 @@
 // precalculated lookup tables for the game
 double cosLookup[360];
 double sinLookup[360];
-//double atan2Lookup[800][800];
+double atan2Lookup[2400][2400];
 
 tGame::tGame()
 {
@@ -54,13 +54,13 @@ tGame::tGame()
         sinLookup[i] = sin((double)i * (cPI / 180.0));
     }
     
-    /*for (int i = 0; i < 800; ++i)
+    for (int i = 0; i < 2400; ++i)
     {
-        for (int j = 0; j < 800; ++j)
+        for (int j = 0; j < 2400; ++j)
         {
-            atan2Lookup[i][j] = atan2(i - 400, j - 400) * 180.0 / cPI;
+            atan2Lookup[i][j] = atan2(i - 1200, j - 1200) * 180.0 / cPI;
         }
-    }*/
+    }
 }
 
 tGame::~tGame() { }
@@ -558,6 +558,9 @@ double tGame::calcDistanceSquared(double fromX, double fromY, double toX, double
     return ( diffX * diffX ) + ( diffY * diffY );
 }*/
 
+double maxFT = 0, maxST = 0, minFT = 0, minST = 0;
+int ct = 0;
+
 // calculates the angle between two agents
 double tGame::calcAngle(double fromX, double fromY, double fromAngle, double toX, double toY)
 {
@@ -572,8 +575,14 @@ double tGame::calcAngle(double fromX, double fromY, double fromAngle, double toX
     int firstTerm = (int)((Ux * Vy) - (Uy * Vx));
     int secondTerm = (int)((Ux * Vx) + (Uy * Vy));
     
-    return atan2(firstTerm, secondTerm) * 180.0 / cPI;
-    //return atan2Lookup[firstTerm + 400][secondTerm + 400];
+    if (fabs(firstTerm) < 1200 && fabs(secondTerm) < 1200)
+    {
+        return atan2Lookup[firstTerm + 1200][secondTerm + 1200];
+    }
+    else
+    {
+        return atan2(firstTerm, secondTerm) * 180.0 / cPI;
+    }
 }
 
 // calculates the center of the swarm and stores it in (cX, cY)
