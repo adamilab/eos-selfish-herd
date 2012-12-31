@@ -90,6 +90,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
     // string containing the information to create a video of the simulation
     string reportString = "";
     
+    vector<double> attackXs, attackYs;
+    
     double attackX = ((double)(randDouble * gridX * 2.0) - gridX);
     double attackY = ((double)(randDouble * gridY * 2.0) - gridY);
     
@@ -146,6 +148,15 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
             char text2[1000];
             sprintf(text2,"%f,%f,%f,%d,%d,%d=", cX, cY, 0.0, 124, 252, 0);
             reportString.append(text2);*/
+            
+            for (int i = 0; i < attackXs.size(); ++i)
+            {
+                char text[1000];
+                
+                sprintf(text,"%f,%f,%f,%d,%d,%d=", attackXs[i], attackYs[i], 0.0, 255, 0, 0);
+                
+                reportString.append(text);
+            }
             
             // report X, Y, angle of all prey
             for(int i = 0; i < swarmSize; ++i)
@@ -406,11 +417,14 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
                 int walkAngle = (int)(randDouble * 360.0);
                 
                 // convert angle into attack vector
-                attackX += cosLookup[walkAngle] * 25.0;
-                attackY += sinLookup[walkAngle] * 25.0;
+                attackX += cosLookup[walkAngle] * (randDouble * 50.0);//25.0;
+                attackY += sinLookup[walkAngle] * (randDouble * 50.0);//25.0;
                 
                 applyBoundary(attackX);
                 applyBoundary(attackY);
+                
+                attackXs.push_back(attackX);
+                attackYs.push_back(attackY);
                 
                 // find the prey closest to the attack vector
                 double closestDist = DBL_MAX;
