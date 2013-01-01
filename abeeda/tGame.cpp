@@ -121,8 +121,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         {
             goodPos = true;
             
-            preyX[i] = 0.5 * ((double)(randDouble * gridX * 2.0) - gridX);
-            preyY[i] = 0.5 * ((double)(randDouble * gridY * 2.0) - gridY);
+            preyX[i] = 0.95 * ((double)(randDouble * gridX * 2.0) - gridX);
+            preyY[i] = 0.95 * ((double)(randDouble * gridY * 2.0) - gridY);
             
             for (int j = 0; goodPos && j < i; ++j)
             {
@@ -152,30 +152,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
         clonePredator->setupPhenotype();
         clonePredator->fitness = 1.0;
         
-        double negPosX = 1, negPosY = 1;
-        
-        if (i == 0 || i == 1 || i == 6)
-        {
-            negPosX *= -1;
-        }
-        
-        if (i == 0 || i == 3 || i == 4)
-        {
-            negPosY *= -1;
-        }
-        
-        if (i == 4 || i == 5)
-        {
-            negPosX = 0;
-        }
-        
-        if (i == 6 || i == 7)
-        {
-            negPosY = 0;
-        }
-        
-        lastPredX[i] = predX[i] = 0.5 * ((double)(randDouble * gridX * 2.0) - gridX);//negPosX * 100.0;//150.0;//(double)(randDouble * gridX * 2.0) - gridX;
-        lastPredY[i] = predY[i] = 0.5 * ((double)(randDouble * gridY * 2.0) - gridY);//negPosY * 100.0;//150.0;//(double)(randDouble * gridY * 2.0) - gridY;
+        lastPredX[i] = predX[i] = 0.95 * ((double)(randDouble * gridX * 2.0) - gridX);
+        lastPredY[i] = predY[i] = 0.95 * ((double)(randDouble * gridY * 2.0) - gridY);
         predA[i] = (int)(randDouble * 360.0);
         delay[i] = 0;
         predatorAgents.push_back(clonePredator);
@@ -532,17 +510,12 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                         if (preyToPreyDists[i][j] < preyVisionRange)
                         {
                             // ignore if agent i isn't even facing agent j (won't be within retina)
-                            if (calcDistanceSquared(preyX[i] + cosLookup[(int)preyA[i]],
-                                                    preyY[i] + sinLookup[(int)preyA[i]],
-                                                    preyX[j], preyY[j]) < preyToPreyDists[i][j])
-                            {
-                                double angle = calcAngle(preyX[i], preyY[i], preyA[i], preyX[j], preyY[j]);
+                            double angle = calcAngle(preyX[i], preyY[i], preyA[i], preyX[j], preyY[j]);
                                 
-                                //here we have to map the angle into the sensor, btw: angle in degrees
-                                if (fabs(angle) < preyVisionAngle) // prey has a limited vision field infront of it
-                                {
-                                    swarmAgents[i]->states[(int)(angle / (preyVisionAngle / ((double)preySensors / 2.0)) + ((double)preySensors / 2.0))] = 1;
-                                }
+                            //here we have to map the angle into the sensor, btw: angle in degrees
+                            if (fabs(angle) < preyVisionAngle) // prey has a limited vision field in front of it
+                            {
+                                swarmAgents[i]->states[(int)(angle / (preyVisionAngle / ((double)preySensors / 2.0)) + ((double)preySensors / 2.0))] = 1;
                             }
                         }
                     }
@@ -602,6 +575,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                         // turn 8 degrees left
                     case 2:
                         preyA[i] -= 8.0;
+                        
                         while(preyA[i] < 0.0)
                         {
                             preyA[i] += 360.0;
