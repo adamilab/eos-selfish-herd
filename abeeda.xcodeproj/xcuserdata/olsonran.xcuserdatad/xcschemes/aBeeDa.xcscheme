@@ -55,7 +55,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-dd /Users/olsonran/Desktop/Dropbox/Private/notebooks/selfish-herd/swarm-sd30-selfish-herd-fixed-starting-pos-swarmsize100-predcorners-np4-kd25/ -sd 30 -np 4 -kd 25"
+            argument = "-dd /Users/olsonran/Desktop/Dropbox/Private/notebooks/selfish-herd/swarm-sd30-selfish-herd-rand-starting-pos-density-dependent-survival-swarmsize100-np4-kd10/ -sd 30 -np 4 -kd 10"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

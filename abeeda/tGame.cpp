@@ -278,7 +278,7 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, tAgent* predatorAgent, FI
                     }
                     
                     // sum the shortest distance for agent i
-                    meanShortestDist += shortestDist;
+                    meanShortestDist += sqrt(shortestDist);
                 }
             }
             
