@@ -410,18 +410,8 @@ string tGame::executeGame(vector<tAgent*> swarmAgents, FILE *data_file, bool rep
             if (delay <= 1 && numAlive > 2)
             {
                 // uniformly random attack
-                //attackX = ((double)(randDouble * gridX * 2.0) - gridX);
-                //attackY = ((double)(randDouble * gridY * 2.0) - gridY);
-                
-                // random walk attack
-                int walkAngle = (int)(randDouble * 360.0);
-                
-                // convert angle into attack vector
-                attackX += cosLookup[walkAngle] * (randDouble * 50.0);//25.0;
-                attackY += sinLookup[walkAngle] * (randDouble * 50.0);//25.0;
-                
-                applyBoundary(attackX);
-                applyBoundary(attackY);
+                attackX = ((double)(randDouble * gridX * 2.0) - gridX);
+                attackY = ((double)(randDouble * gridY * 2.0) - gridY);
                 
                 attackXs.push_back(attackX);
                 attackYs.push_back(attackY);
